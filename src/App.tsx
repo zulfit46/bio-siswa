@@ -40,6 +40,62 @@ const allMenuItems = [
   { id: 'verval', label: 'Verval Data', icon: FileCheck },
 ];
 
+function StatusModal({ show, type, message, onClose }: { show: boolean, type: 'success' | 'error', message: string, onClose: () => void }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="relative w-full max-w-sm glass border border-white/10 rounded-3xl p-8 shadow-2xl overflow-hidden"
+          >
+            <div className={`absolute top-0 left-0 w-full h-1.5 ${type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+            
+            <div className="flex flex-col items-center text-center space-y-6">
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center ${type === 'success' ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>
+                {type === 'success' ? (
+                  <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                ) : (
+                  <AlertCircle className="w-10 h-10 text-red-500" />
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-white">
+                  {type === 'success' ? 'Berhasil!' : 'Gagal!'}
+                </h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  {message}
+                </p>
+              </div>
+              
+              <button
+                onClick={onClose}
+                className={`w-full py-3 rounded-xl font-bold transition-all ${
+                  type === 'success' 
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' 
+                    : 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20'
+                }`}
+              >
+                Tutup
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [nisnInput, setNisnInput] = useState('');
@@ -1448,30 +1504,18 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
         </button>
       </div>
 
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Data berhasil diperbarui.</span>
-          </motion.div>
-        )}
-        {showError && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3 text-red-400"
-          >
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{errorMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <StatusModal 
+        show={showSuccess} 
+        type="success" 
+        message="Data berhasil diperbarui." 
+        onClose={() => setShowSuccess(false)} 
+      />
+      <StatusModal 
+        show={showError} 
+        type="error" 
+        message={errorMessage} 
+        onClose={() => setShowError(false)} 
+      />
 
       <div className="max-w-4xl mx-auto pb-20">
         <div className="space-y-6">
@@ -1976,30 +2020,18 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
         <p className="text-xs sm:text-sm text-slate-400">Lengkapi informasi ayah dan ibu kandung sesuai dengan dokumen resmi.</p>
       </div>
 
-      <AnimatePresence mode="wait">
-        {showSuccess && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Data orang tua berhasil diperbarui.</span>
-          </motion.div>
-        )}
-        {showError && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3 text-red-400"
-          >
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{errorMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <StatusModal 
+        show={showSuccess} 
+        type="success" 
+        message="Data orang tua berhasil diperbarui." 
+        onClose={() => setShowSuccess(false)} 
+      />
+      <StatusModal 
+        show={showError} 
+        type="error" 
+        message={errorMessage} 
+        onClose={() => setShowError(false)} 
+      />
 
       <div className="max-w-4xl mx-auto space-y-8 pb-20">
         {/* Data Ayah */}
@@ -2358,30 +2390,18 @@ function RegistrasiView({ formData, handleInputChange, setFormData }: { formData
         <p className="text-xs sm:text-sm text-slate-400">Lengkapi data registrasi untuk keperluan administrasi sekolah.</p>
       </div>
 
-      <AnimatePresence mode="wait">
-        {showSuccess && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Data registrasi berhasil diperbarui.</span>
-          </motion.div>
-        )}
-        {showError && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3 text-red-400"
-          >
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{errorMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <StatusModal 
+        show={showSuccess} 
+        type="success" 
+        message="Data registrasi berhasil diperbarui." 
+        onClose={() => setShowSuccess(false)} 
+      />
+      <StatusModal 
+        show={showError} 
+        type="error" 
+        message={errorMessage} 
+        onClose={() => setShowError(false)} 
+      />
 
       <div className="max-w-4xl mx-auto space-y-8 pb-20">
         <div className="glass-card p-4 sm:p-8 space-y-6">
@@ -2575,30 +2595,18 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
         <p className="text-xs sm:text-sm text-slate-400">Lengkapi data periodik siswa untuk pemantauan perkembangan fisik.</p>
       </div>
 
-      <AnimatePresence mode="wait">
-        {showSuccess && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Data periodik berhasil diperbarui.</span>
-          </motion.div>
-        )}
-        {showError && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3 text-red-400"
-          >
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{errorMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <StatusModal 
+        show={showSuccess} 
+        type="success" 
+        message="Data periodik berhasil diperbarui." 
+        onClose={() => setShowSuccess(false)} 
+      />
+      <StatusModal 
+        show={showError} 
+        type="error" 
+        message={errorMessage} 
+        onClose={() => setShowError(false)} 
+      />
 
       <div className="max-w-4xl mx-auto space-y-8 pb-20">
         <div className="glass-card p-4 sm:p-8 space-y-6">
@@ -2854,30 +2862,18 @@ function KurangMampuView({ formData, handleInputChange, setFormData }: { formDat
         <p className="text-xs sm:text-sm text-slate-400">Lengkapi informasi bantuan sosial dan kartu kesejahteraan siswa pada sheet khusus.</p>
       </div>
 
-      <AnimatePresence mode="wait">
-        {showSuccess && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Data berhasil disimpan ke sheet kurangmampu.</span>
-          </motion.div>
-        )}
-        {showError && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3 text-red-400"
-          >
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{errorMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <StatusModal 
+        show={showSuccess} 
+        type="success" 
+        message="Data berhasil disimpan ke sheet kurangmampu." 
+        onClose={() => setShowSuccess(false)} 
+      />
+      <StatusModal 
+        show={showError} 
+        type="error" 
+        message={errorMessage} 
+        onClose={() => setShowError(false)} 
+      />
 
       <div className="max-w-4xl mx-auto space-y-8 pb-20">
         {/* Info Dasar (Read Only) */}
@@ -3399,30 +3395,18 @@ function VervalView({ formData, handleInputChange, setFormData }: { formData: an
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {showSuccess && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl flex items-center gap-3 text-emerald-400"
-          >
-            <CheckCircle2 className="w-5 h-5" />
-            <span className="text-sm font-medium">Data verval berhasil diperbarui.</span>
-          </motion.div>
-        )}
-        {showError && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3 text-red-400"
-          >
-            <AlertCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{errorMessage}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <StatusModal 
+        show={showSuccess} 
+        type="success" 
+        message="Data verval berhasil diperbarui." 
+        onClose={() => setShowSuccess(false)} 
+      />
+      <StatusModal 
+        show={showError} 
+        type="error" 
+        message={errorMessage} 
+        onClose={() => setShowError(false)} 
+      />
 
       <div className="max-w-4xl mx-auto space-y-8 pb-20">
         <AnimatePresence mode="wait">
