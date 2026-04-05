@@ -1191,7 +1191,7 @@ function DashboardView({
   const sections = [
     { 
       label: 'Profil Saya', 
-      getRequiredFields: () => ['nama', 'jk', 'nipd', 'nisn', 'nik', 'agama', 'tempat_lahir', 'tanggal_lahir', 'no_kk', 'alamat_jalan', 'kel', 'kec', 'kab_kota', 'jenis_tinggal', 'alat_transportasi', 'no_hp', 'rombel', 'jurusan'] 
+      getRequiredFields: () => ['nama', 'jk', 'nipd', 'nisn', 'nik', 'agama', 'tempat_lahir', 'tanggal_lahir', 'no_kk', 'alamat_jalan', 'kel', 'kec', 'kab_kota', 'jenis_tinggal', 'alat_transportasi', 'no_hp', 'jurusan'] 
     },
     { 
       label: 'Data Orang Tua', 
@@ -1356,7 +1356,6 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
       { key: 'jenis_tinggal', label: 'Jenis Tinggal' },
       { key: 'alat_transportasi', label: 'Alat Transportasi' },
       { key: 'no_hp', label: 'No. HP' },
-      { key: 'rombel', label: 'Rombel' },
       { key: 'jurusan', label: 'Jurusan' }
     ];
 
@@ -1716,7 +1715,7 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
                 <input name="email" value={formData.email} onChange={handleInputChange} type="email" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rombel <span className="text-red-500">*</span></label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rombel</label>
                 <select 
                   name="rombel" 
                   value={formData.rombel} 
