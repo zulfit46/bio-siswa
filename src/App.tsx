@@ -317,7 +317,8 @@ export default function App() {
     tanggal_lahir_kk: '',
     upload_kk: '',
     upload_kk_preview: '',
-    akses_menu: 'all'
+    akses_menu: 'all',
+    terakhir_login: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
