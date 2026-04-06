@@ -347,7 +347,7 @@ export default function App() {
     setLoginError('');
 
     // URL Web App Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB_uJ9S5211IJhsH5rKFO-1peEdF9zRmMHkS6suQy0uKyosrulNhaIzhjsIdU4Tvi7/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRAyzDE44XBJ6Zjztd6nUISIePiwt1J8YfEx7MpXr6pg1rQlfR_VkPe0Ax0OYvT5LT/exec';
     
 
     try {
