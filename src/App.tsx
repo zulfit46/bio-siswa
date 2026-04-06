@@ -40,6 +40,8 @@ const allMenuItems = [
   { id: 'verval', label: 'Verval Data', icon: FileCheck },
 ];
 
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRAyzDE44XBJ6Zjztd6nUISIePiwt1J8YfEx7MpXr6pg1rQlfR_VkPe0Ax0OYvT5LT/exec';
+
 function StatusModal({ show, type, message, onClose }: { show: boolean, type: 'success' | 'error', message: string, onClose: () => void }) {
   return (
     <AnimatePresence>
@@ -318,7 +320,8 @@ export default function App() {
     upload_kk: '',
     upload_kk_preview: '',
     akses_menu: 'all',
-    terakhir_login: ''
+    terakhir_login: '',
+    terakhir_update: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -345,10 +348,6 @@ export default function App() {
     
     setIsLoggingIn(true);
     setLoginError('');
-
-    // URL Web App Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRAyzDE44XBJ6Zjztd6nUISIePiwt1J8YfEx7MpXr6pg1rQlfR_VkPe0Ax0OYvT5LT/exec';
-    
 
     try {
       // Membersihkan input NISN dari spasi
@@ -403,7 +402,7 @@ export default function App() {
           
           // Filter unread: must have an ID or Judul, and not be in readIds
           const unread = allNotifications.filter((n: any) => {
-            const id = String(n.id || n.judul || '').trim();
+            const id = String(n.id || `${n.judul}-${n.pesan}` || '').trim();
             return id && !readIds.includes(id);
           });
           
@@ -536,7 +535,7 @@ export default function App() {
     
     const readIds = JSON.parse(localStorage.getItem(`read_notif_${serverNisn}`) || '[]');
     const currentUnreadIds = unreadNotifications
-      .map(n => String(n.id || n.judul || '').trim())
+      .map(n => String(n.id || `${n.judul}-${n.pesan}` || '').trim())
       .filter(Boolean);
       
     const newReadIds = [...new Set([...readIds, ...currentUnreadIds])];
@@ -1388,9 +1387,6 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
 
     setIsSaving(true);
     
-    // URL Web App Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB_uJ9S5211IJhsH5rKFO-1peEdF9zRmMHkS6suQy0uKyosrulNhaIzhjsIdU4Tvi7/exec';
-
     try {
       // Menyiapkan data lengkap sesuai urutan kolom di Google Sheet
       // Mengirimkan seluruh data (Siswa + Orang Tua) agar tidak ada data yang terhapus
@@ -1917,9 +1913,6 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
 
     setIsSaving(true);
     
-    // URL Web App Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB_uJ9S5211IJhsH5rKFO-1peEdF9zRmMHkS6suQy0uKyosrulNhaIzhjsIdU4Tvi7/exec';
-
     try {
       // Menyiapkan data lengkap sesuai urutan kolom di Google Sheet
       // Mengirimkan seluruh data (Siswa + Orang Tua) agar tidak ada data yang terhapus
@@ -2216,9 +2209,6 @@ function RegistrasiView({ formData, handleInputChange, setFormData }: { formData
 
     setIsSaving(true);
     
-    // URL Web App Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB_uJ9S5211IJhsH5rKFO-1peEdF9zRmMHkS6suQy0uKyosrulNhaIzhjsIdU4Tvi7/exec';
-
     try {
       // Menyiapkan data lengkap sesuai urutan kolom di Google Sheet
       const payload = {
@@ -2498,9 +2488,6 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
 
     setIsSaving(true);
     
-    // URL Web App Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB_uJ9S5211IJhsH5rKFO-1peEdF9zRmMHkS6suQy0uKyosrulNhaIzhjsIdU4Tvi7/exec';
-
     try {
       const payload = {
         action: 'update_profile',
@@ -2809,9 +2796,6 @@ function KurangMampuView({ formData, handleInputChange, setFormData }: { formDat
 
     setIsSaving(true);
     
-    // URL Web App Google Apps Script
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB_uJ9S5211IJhsH5rKFO-1peEdF9zRmMHkS6suQy0uKyosrulNhaIzhjsIdU4Tvi7/exec';
-
     try {
       const payload = {
         action: 'save_kurang_mampu',
@@ -3278,7 +3262,6 @@ function VervalView({ formData, handleInputChange, setFormData }: { formData: an
     }
 
     setIsSaving(true);
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB_uJ9S5211IJhsH5rKFO-1peEdF9zRmMHkS6suQy0uKyosrulNhaIzhjsIdU4Tvi7/exec';
 
     try {
       const payload = {
