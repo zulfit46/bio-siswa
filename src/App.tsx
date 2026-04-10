@@ -3403,7 +3403,7 @@ function VervalView({ formData, handleInputChange, setFormData }: { formData: an
             >
           <div className="glass-card p-4 sm:p-8 space-y-6">
             <h3 className="text-lg font-bold border-b border-white/5 pb-4 flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-400" /> Data Identitas Saat Ini
+              <Users className="w-5 h-5 text-blue-400" /> Data Induk Ijazah
             </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -3428,11 +3428,27 @@ function VervalView({ formData, handleInputChange, setFormData }: { formData: an
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-300">Apakah data diatas sudah sesuai dengan data di Ijazah Anda? <span className="text-red-500">*</span></label>
-                    <select name="status_verval" value={formData.status_verval} onChange={handleInputChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
-                      <option value="">Pilih Jawaban</option>
-                      <option value="Ya">Ya</option>
-                      <option value="Tidak">Tidak</option>
-                    </select>
+                    <div className="flex flex-col gap-3">
+                      {['Ya', 'Tidak'].map((option) => (
+                        <label key={option} className="flex items-center gap-3 cursor-pointer group">
+                          <div 
+                            onClick={() => setFormData((prev: any) => ({ ...prev, status_verval: option }))}
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                              formData.status_verval === option 
+                                ? 'border-purple-500 bg-purple-500/10' 
+                                : 'border-white/20 group-hover:border-purple-500/50'
+                            }`}
+                          >
+                            {formData.status_verval === option && (
+                              <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
+                            )}
+                          </div>
+                          <span className={`text-sm font-medium transition-colors ${formData.status_verval === option ? 'text-white' : 'text-slate-400'}`}>
+                            {option}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
 
                   {formData.status_verval === 'Tidak' && (
@@ -3442,7 +3458,7 @@ function VervalView({ formData, handleInputChange, setFormData }: { formData: an
                       className="space-y-6 pt-4 border-t border-white/5"
                     >
                       <div className="space-y-3">
-                        <label className="text-sm font-medium text-slate-300">Data apa yang salah? (Bisa pilih lebih dari satu) <span className="text-red-500">*</span></label>
+                        <label className="text-sm font-medium text-slate-300">Data apa yang tidak sesuai? (Bisa pilih lebih dari satu) <span className="text-red-500">*</span></label>
                         <div className="flex flex-wrap gap-4">
                           {['nama', 'tempat lahir', 'tanggal lahir'].map((item) => (
                             <label key={item} className="flex items-center gap-2 cursor-pointer group">
@@ -3567,11 +3583,27 @@ function VervalView({ formData, handleInputChange, setFormData }: { formData: an
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-300">Apakah data diatas sudah sesuai dengan data di Kartu Keluarga Anda? <span className="text-red-500">*</span></label>
-                    <select name="status_kk" value={formData.status_kk} onChange={handleInputChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
-                      <option value="">Pilih Jawaban</option>
-                      <option value="Ya">Ya</option>
-                      <option value="Tidak">Tidak</option>
-                    </select>
+                    <div className="flex flex-col gap-3">
+                      {['Ya', 'Tidak'].map((option) => (
+                        <label key={option} className="flex items-center gap-3 cursor-pointer group">
+                          <div 
+                            onClick={() => setFormData((prev: any) => ({ ...prev, status_kk: option }))}
+                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                              formData.status_kk === option 
+                                ? 'border-blue-500 bg-blue-500/10' 
+                                : 'border-white/20 group-hover:border-blue-500/50'
+                            }`}
+                          >
+                            {formData.status_kk === option && (
+                              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                            )}
+                          </div>
+                          <span className={`text-sm font-medium transition-colors ${formData.status_kk === option ? 'text-white' : 'text-slate-400'}`}>
+                            {option}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
 
                   {formData.status_kk === 'Tidak' && (
@@ -3581,7 +3613,7 @@ function VervalView({ formData, handleInputChange, setFormData }: { formData: an
                       className="space-y-6 pt-4 border-t border-white/5"
                     >
                       <div className="space-y-3">
-                        <label className="text-sm font-medium text-slate-300">Data apa yang salah? (Bisa pilih lebih dari satu) <span className="text-red-500">*</span></label>
+                        <label className="text-sm font-medium text-slate-300">Data apa yang tidak sesuai? (Bisa pilih lebih dari satu) <span className="text-red-500">*</span></label>
                         <div className="flex flex-wrap gap-4">
                           {['nama', 'tempat lahir', 'tanggal lahir'].map((item) => (
                             <label key={item} className="flex items-center gap-2 cursor-pointer group">
