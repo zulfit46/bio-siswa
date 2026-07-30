@@ -1812,24 +1812,22 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
         setFormData((prev: any) => ({ 
           ...prev, 
           status_hidup_ayah: 'Wafat',
-          pekerjaan_ayah: '98', 
+          pekerjaan_ayah: '1', 
           penghasilan_ayah: '99' 
         }));
       } else if (value === 'Hidup') {
         setFormData((prev: any) => ({ 
           ...prev, 
           status_hidup_ayah: 'Hidup',
-          pekerjaan_ayah: prev.pekerjaan_ayah === '98' ? '' : prev.pekerjaan_ayah 
+          pekerjaan_ayah: (prev.pekerjaan_ayah === '1' || prev.pekerjaan_ayah === '98') ? '' : prev.pekerjaan_ayah 
         }));
       }
     } else if (name === 'pekerjaan_ayah') {
-      if (value === '1') {
-        setFormData((prev: any) => ({ ...prev, penghasilan_ayah: '99' }));
-      } else if (value === '98') {
+      if (value === '1' || value === '98') {
         setFormData((prev: any) => ({ 
           ...prev, 
           penghasilan_ayah: '99',
-          status_hidup_ayah: 'Wafat'
+          ...(value === '98' ? { status_hidup_ayah: 'Wafat' } : {})
         }));
       } else {
         setFormData((prev: any) => ({
@@ -1842,24 +1840,22 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
         setFormData((prev: any) => ({ 
           ...prev, 
           status_hidup_ibu: 'Wafat',
-          pekerjaan_ibu: '98', 
+          pekerjaan_ibu: '1', 
           penghasilan_ibu: '99' 
         }));
       } else if (value === 'Hidup') {
         setFormData((prev: any) => ({ 
           ...prev, 
           status_hidup_ibu: 'Hidup',
-          pekerjaan_ibu: prev.pekerjaan_ibu === '98' ? '' : prev.pekerjaan_ibu 
+          pekerjaan_ibu: (prev.pekerjaan_ibu === '1' || prev.pekerjaan_ibu === '98') ? '' : prev.pekerjaan_ibu 
         }));
       }
     } else if (name === 'pekerjaan_ibu') {
-      if (value === '1') {
-        setFormData((prev: any) => ({ ...prev, penghasilan_ibu: '99' }));
-      } else if (value === '98') {
+      if (value === '1' || value === '98') {
         setFormData((prev: any) => ({ 
           ...prev, 
           penghasilan_ibu: '99',
-          status_hidup_ibu: 'Wafat'
+          ...(value === '98' ? { status_hidup_ibu: 'Wafat' } : {})
         }));
       } else {
         setFormData((prev: any) => ({
@@ -2174,7 +2170,13 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pekerjaan <span className="text-red-500">*</span></label>
-              <select name="pekerjaan_ayah" value={formData.pekerjaan_ayah} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+              <select 
+                name="pekerjaan_ayah" 
+                value={formData.pekerjaan_ayah} 
+                onChange={onFieldChange} 
+                disabled={formData.status_hidup_ayah === 'Wafat'}
+                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
+              >
                 <option value="">Pilih Pekerjaan</option>
                 {pekerjaan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
@@ -2247,7 +2249,13 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pekerjaan <span className="text-red-500">*</span></label>
-              <select name="pekerjaan_ibu" value={formData.pekerjaan_ibu} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+              <select 
+                name="pekerjaan_ibu" 
+                value={formData.pekerjaan_ibu} 
+                onChange={onFieldChange} 
+                disabled={formData.status_hidup_ibu === 'Wafat'}
+                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
+              >
                 <option value="">Pilih Pekerjaan</option>
                 {pekerjaan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
