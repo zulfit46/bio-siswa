@@ -272,12 +272,14 @@ export default function App() {
     jurusan: '',
     // Data Orang Tua
     nama_ayah: '',
+    status_hidup_ayah: 'Hidup',
     nik_ayah: '',
     tahun_lahir_ayah: '',
     jenjang_pendidikan_ayah: '',
     pekerjaan_ayah: '',
     penghasilan_ayah: '',
     nama_ibu: '',
+    status_hidup_ibu: 'Hidup',
     nik_ibu: '',
     tahun_lahir_ibu: '',
     jenjang_pendidikan_ibu: '',
@@ -386,6 +388,8 @@ export default function App() {
           if (mappedData.jk === 'Laki-laki') mappedData.jk = 'L';
           if (mappedData.jk === 'Perempuan') mappedData.jk = 'P';
           
+          mappedData.status_hidup_ayah = mappedData.status_hidup_ayah || 'Hidup';
+          mappedData.status_hidup_ibu = mappedData.status_hidup_ibu || 'Hidup';
           mappedData.initial_tempat_lahir = mappedData.tempat_lahir ? String(mappedData.tempat_lahir).trim() : '';
           mappedData.initial_tanggal_lahir = mappedData.tanggal_lahir ? String(mappedData.tanggal_lahir).trim() : '';
           
@@ -477,12 +481,14 @@ export default function App() {
       rombel: '',
       jurusan: '',
       nama_ayah: '',
+      status_hidup_ayah: 'Hidup',
       nik_ayah: '',
       tahun_lahir_ayah: '',
       jenjang_pendidikan_ayah: '',
       pekerjaan_ayah: '',
       penghasilan_ayah: '',
       nama_ibu: '',
+      status_hidup_ibu: 'Hidup',
       nik_ibu: '',
       tahun_lahir_ibu: '',
       jenjang_pendidikan_ibu: '',
@@ -1108,6 +1114,7 @@ function PDFTemplate({ formData, getLabel, religionMapping, stayMapping, transpo
               <table style={{ width: '100%', fontSize: '10px' }}>
                 <tbody>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Nama</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nama_ayah || '-'}</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Status Hidup</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.status_hidup_ayah || 'Hidup'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>NIK</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nik_ayah || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Tahun Lahir</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.tahun_lahir_ayah || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Pendidikan</td><td style={{ padding: '4px 0', color: '#000' }}>: {getLabel(formData.jenjang_pendidikan_ayah, eduMapping)}</td></tr>
@@ -1121,6 +1128,7 @@ function PDFTemplate({ formData, getLabel, religionMapping, stayMapping, transpo
               <table style={{ width: '100%', fontSize: '10px' }}>
                 <tbody>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Nama</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nama_ibu || '-'}</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Status Hidup</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.status_hidup_ibu || 'Hidup'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>NIK</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nik_ibu || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Tahun Lahir</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.tahun_lahir_ibu || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Pendidikan</td><td style={{ padding: '4px 0', color: '#000' }}>: {getLabel(formData.jenjang_pendidikan_ibu, eduMapping)}</td></tr>
@@ -1791,21 +1799,73 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Wrapper for handleInputChange to handle automatic income logic
+  // Wrapper for handleInputChange to handle automatic income & status_hidup logic
   const onFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     // Call original handler first
     handleInputChange(e);
 
-    // Automatic income logic
-    if (name === 'pekerjaan_ayah') {
-      if (value === '1' || value === '98') {
+    // Automatic logic
+    if (name === 'status_hidup_ayah') {
+      if (value === 'Wafat') {
+        setFormData((prev: any) => ({ 
+          ...prev, 
+          status_hidup_ayah: 'Wafat',
+          pekerjaan_ayah: '98', 
+          penghasilan_ayah: '99' 
+        }));
+      } else if (value === 'Hidup') {
+        setFormData((prev: any) => ({ 
+          ...prev, 
+          status_hidup_ayah: 'Hidup',
+          pekerjaan_ayah: prev.pekerjaan_ayah === '98' ? '' : prev.pekerjaan_ayah 
+        }));
+      }
+    } else if (name === 'pekerjaan_ayah') {
+      if (value === '1') {
         setFormData((prev: any) => ({ ...prev, penghasilan_ayah: '99' }));
+      } else if (value === '98') {
+        setFormData((prev: any) => ({ 
+          ...prev, 
+          penghasilan_ayah: '99',
+          status_hidup_ayah: 'Wafat'
+        }));
+      } else {
+        setFormData((prev: any) => ({
+          ...prev,
+          status_hidup_ayah: prev.status_hidup_ayah === 'Wafat' ? 'Hidup' : (prev.status_hidup_ayah || 'Hidup')
+        }));
+      }
+    } else if (name === 'status_hidup_ibu') {
+      if (value === 'Wafat') {
+        setFormData((prev: any) => ({ 
+          ...prev, 
+          status_hidup_ibu: 'Wafat',
+          pekerjaan_ibu: '98', 
+          penghasilan_ibu: '99' 
+        }));
+      } else if (value === 'Hidup') {
+        setFormData((prev: any) => ({ 
+          ...prev, 
+          status_hidup_ibu: 'Hidup',
+          pekerjaan_ibu: prev.pekerjaan_ibu === '98' ? '' : prev.pekerjaan_ibu 
+        }));
       }
     } else if (name === 'pekerjaan_ibu') {
-      if (value === '1' || value === '98') {
+      if (value === '1') {
         setFormData((prev: any) => ({ ...prev, penghasilan_ibu: '99' }));
+      } else if (value === '98') {
+        setFormData((prev: any) => ({ 
+          ...prev, 
+          penghasilan_ibu: '99',
+          status_hidup_ibu: 'Wafat'
+        }));
+      } else {
+        setFormData((prev: any) => ({
+          ...prev,
+          status_hidup_ibu: prev.status_hidup_ibu === 'Wafat' ? 'Hidup' : (prev.status_hidup_ibu || 'Hidup')
+        }));
       }
     }
   };
@@ -1866,14 +1926,14 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
     { value: '15', label: 'Rp. 5,000,000 - Rp. 20,000,000' },
     { value: '16', label: 'Lebih dari Rp. 20,000,000' },
     { value: '17', label: '<Rp. 1,000,000' },
-    { value: '18', label: 'Rp1.000.001 â€“ Rp3.000.000' },
+    { value: '18', label: 'Rp1.000.001 – Rp3.000.000' },
     { value: '99', label: 'Tidak Berpenghasilan' },
   ];
 
   const handleSave = async () => {
     // List of mandatory fields
-    const requiredAyah = ['nama_ayah', 'tahun_lahir_ayah', 'jenjang_pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah'];
-    const requiredIbu = ['nama_ibu', 'tahun_lahir_ibu', 'jenjang_pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu'];
+    const requiredAyah = ['nama_ayah', 'status_hidup_ayah', 'tahun_lahir_ayah', 'jenjang_pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah'];
+    const requiredIbu = ['nama_ibu', 'status_hidup_ibu', 'tahun_lahir_ibu', 'jenjang_pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu'];
 
     // Check Ayah mandatory fields
     for (const field of requiredAyah) {
@@ -1897,8 +1957,8 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
       }
     }
 
-    // Conditional NIK validation: Mandatory unless Pekerjaan is "Sudah Meninggal" (98)
-    if (formData.pekerjaan_ayah !== '98') {
+    // Conditional NIK validation: Mandatory unless Pekerjaan is "Sudah Meninggal" (98) or Status Hidup is "Wafat"
+    if (formData.pekerjaan_ayah !== '98' && formData.status_hidup_ayah !== 'Wafat') {
       if (!formData.nik_ayah || formData.nik_ayah.toString().trim() === '') {
         setErrorMessage('Gagal menyimpan: NIK Ayah wajib diisi.');
         setShowError(true);
@@ -1907,7 +1967,7 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
       }
     }
 
-    if (formData.pekerjaan_ibu !== '98') {
+    if (formData.pekerjaan_ibu !== '98' && formData.status_hidup_ibu !== 'Wafat') {
       if (!formData.nik_ibu || formData.nik_ibu.toString().trim() === '') {
         setErrorMessage('Gagal menyimpan: NIK Ibu wajib diisi.');
         setShowError(true);
@@ -1977,12 +2037,14 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
         jurusan: String(formData.jurusan || ''),
         // Data Orang Tua (Kolom X - AI)
         nama_ayah: String(formData.nama_ayah || ''),
+        status_hidup_ayah: String(formData.status_hidup_ayah || 'Hidup'),
         nik_ayah: String(formData.nik_ayah || ''),
         tahun_lahir_ayah: String(formData.tahun_lahir_ayah || ''),
         jenjang_pendidikan_ayah: String(formData.jenjang_pendidikan_ayah || ''),
         pekerjaan_ayah: String(formData.pekerjaan_ayah || ''),
         penghasilan_ayah: String(formData.penghasilan_ayah || ''),
         nama_ibu: String(formData.nama_ibu || ''),
+        status_hidup_ibu: String(formData.status_hidup_ibu || 'Hidup'),
         nik_ibu: String(formData.nik_ibu || ''),
         tahun_lahir_ibu: String(formData.tahun_lahir_ibu || ''),
         jenjang_pendidikan_ibu: String(formData.jenjang_pendidikan_ibu || ''),
@@ -2071,8 +2133,15 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
               <input name="nama_ayah" value={formData.nama_ayah} onChange={onFieldChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
             </div>
             <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Hidup Ayah <span className="text-red-500">*</span></label>
+              <select name="status_hidup_ayah" value={formData.status_hidup_ayah || 'Hidup'} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+                <option value="Hidup">Hidup</option>
+                <option value="Wafat">Wafat</option>
+              </select>
+            </div>
+            <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                NIK Ayah {formData.pekerjaan_ayah !== '98' && <span className="text-red-500">*</span>}
+                NIK Ayah {(formData.pekerjaan_ayah !== '98' && formData.status_hidup_ayah !== 'Wafat') && <span className="text-red-500">*</span>}
               </label>
               <input 
                 name="nik_ayah" 
@@ -2080,7 +2149,7 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
                 onChange={onFieldChange} 
                 type="text" 
                 maxLength={16}
-                placeholder={formData.pekerjaan_ayah === '98' ? "Opsional (Alm)" : "16 digit NIK"}
+                placeholder={(formData.pekerjaan_ayah === '98' || formData.status_hidup_ayah === 'Wafat') ? "Opsional (Alm)" : "16 digit NIK"}
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono" 
               />
             </div>
@@ -2110,13 +2179,13 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
                 {pekerjaan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Penghasilan Bulanan <span className="text-red-500">*</span></label>
               <select 
                 name="penghasilan_ayah" 
                 value={formData.penghasilan_ayah} 
                 onChange={onFieldChange} 
-                disabled={formData.pekerjaan_ayah === '1' || formData.pekerjaan_ayah === '98'}
+                disabled={formData.pekerjaan_ayah === '1' || formData.pekerjaan_ayah === '98' || formData.status_hidup_ayah === 'Wafat'}
                 className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
               >
                 <option value="">Pilih Penghasilan</option>
@@ -2137,8 +2206,15 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
               <input name="nama_ibu" value={formData.nama_ibu} onChange={onFieldChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
             </div>
             <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Hidup Ibu <span className="text-red-500">*</span></label>
+              <select name="status_hidup_ibu" value={formData.status_hidup_ibu || 'Hidup'} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+                <option value="Hidup">Hidup</option>
+                <option value="Wafat">Wafat</option>
+              </select>
+            </div>
+            <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                NIK Ibu {formData.pekerjaan_ibu !== '98' && <span className="text-red-500">*</span>}
+                NIK Ibu {(formData.pekerjaan_ibu !== '98' && formData.status_hidup_ibu !== 'Wafat') && <span className="text-red-500">*</span>}
               </label>
               <input 
                 name="nik_ibu" 
@@ -2146,7 +2222,7 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
                 onChange={onFieldChange} 
                 type="text" 
                 maxLength={16}
-                placeholder={formData.pekerjaan_ibu === '98' ? "Opsional (Alm)" : "16 digit NIK"}
+                placeholder={(formData.pekerjaan_ibu === '98' || formData.status_hidup_ibu === 'Wafat') ? "Opsional (Alm)" : "16 digit NIK"}
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono" 
               />
             </div>
@@ -2176,13 +2252,13 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
                 {pekerjaan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Penghasilan Bulanan <span className="text-red-500">*</span></label>
               <select 
                 name="penghasilan_ibu" 
                 value={formData.penghasilan_ibu} 
                 onChange={onFieldChange} 
-                disabled={formData.pekerjaan_ibu === '1' || formData.pekerjaan_ibu === '98'}
+                disabled={formData.pekerjaan_ibu === '1' || formData.pekerjaan_ibu === '98' || formData.status_hidup_ibu === 'Wafat'}
                 className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
               >
                 <option value="">Pilih Penghasilan</option>
