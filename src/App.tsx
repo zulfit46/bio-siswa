@@ -247,7 +247,9 @@ export default function App() {
     nisn: '',
     nama: 'Siswa SMKN 1',
     tempat_lahir: '',
+    initial_tempat_lahir: '',
     tanggal_lahir: '',
+    initial_tanggal_lahir: '',
     nik: '',
     agama: '',
     no_kk: '',
@@ -382,6 +384,9 @@ export default function App() {
           if (mappedData.jk === 'Laki-laki') mappedData.jk = 'L';
           if (mappedData.jk === 'Perempuan') mappedData.jk = 'P';
           
+          mappedData.initial_tempat_lahir = mappedData.tempat_lahir ? String(mappedData.tempat_lahir).trim() : '';
+          mappedData.initial_tanggal_lahir = mappedData.tanggal_lahir ? String(mappedData.tanggal_lahir).trim() : '';
+          
           // Convert data_salah from string to array
           if (mappedData.data_salah && typeof mappedData.data_salah === 'string') {
             mappedData.data_salah = mappedData.data_salah.split(', ').filter(Boolean);
@@ -448,7 +453,9 @@ export default function App() {
       nisn: '',
       nama: 'Siswa SMKN 1',
       tempat_lahir: '',
+      initial_tempat_lahir: '',
       tanggal_lahir: '',
+      initial_tanggal_lahir: '',
       nik: '',
       agama: '',
       no_kk: '',
@@ -1336,6 +1343,15 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const isTempatLahirDisabled = Boolean(
+    (formData.initial_tempat_lahir !== undefined ? formData.initial_tempat_lahir : formData.tempat_lahir) &&
+    String(formData.initial_tempat_lahir !== undefined ? formData.initial_tempat_lahir : formData.tempat_lahir).trim() !== ''
+  );
+  const isTanggalLahirDisabled = Boolean(
+    (formData.initial_tanggal_lahir !== undefined ? formData.initial_tanggal_lahir : formData.tanggal_lahir) &&
+    String(formData.initial_tanggal_lahir !== undefined ? formData.initial_tanggal_lahir : formData.tanggal_lahir).trim() !== ''
+  );
   
   const handleSave = async () => {
     // List field yang wajib diisi
@@ -1469,6 +1485,11 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
 
       setIsSaving(false);
       setShowSuccess(true);
+      setFormData((prev: any) => ({
+        ...prev,
+        initial_tempat_lahir: prev.tempat_lahir ? String(prev.tempat_lahir).trim() : '',
+        initial_tanggal_lahir: prev.tanggal_lahir ? String(prev.tanggal_lahir).trim() : ''
+      }));
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error('Error saving to Google Sheets:', error);
@@ -1586,11 +1607,19 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tempat Lahir <span className="text-red-500">*</span></label>
-                <input name="tempat_lahir" value={formData.tempat_lahir} readOnly type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none cursor-not-allowed opacity-60 transition-all" />
+                {isTempatLahirDisabled ? (
+                  <input name="tempat_lahir" value={formData.tempat_lahir} readOnly type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none cursor-not-allowed opacity-60 transition-all" />
+                ) : (
+                  <input name="tempat_lahir" value={formData.tempat_lahir} onChange={handleInputChange} type="text" placeholder="Masukkan Tempat Lahir" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tanggal Lahir <span className="text-red-500">*</span></label>
-                <input name="tanggal_lahir" value={formData.tanggal_lahir} readOnly type="date" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none cursor-not-allowed opacity-60 transition-all" />
+                {isTanggalLahirDisabled ? (
+                  <input name="tanggal_lahir" value={formData.tanggal_lahir} readOnly type="date" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none cursor-not-allowed opacity-60 transition-all" />
+                ) : (
+                  <input name="tanggal_lahir" value={formData.tanggal_lahir} onChange={handleInputChange} type="date" className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">No. Kartu Keluarga <span className="text-red-500">*</span></label>
