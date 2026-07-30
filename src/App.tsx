@@ -153,6 +153,8 @@ export default function App() {
     { value: '11', label: 'Kurang dari Rp. 500,000' }, { value: '12', label: 'Rp. 500,000 - Rp. 999,999' },
     { value: '13', label: 'Rp. 1,000,000 - Rp. 1,999,999' }, { value: '14', label: 'Rp. 2,000,000 - Rp. 4,999,999' },
     { value: '15', label: 'Rp. 5,000,000 - Rp. 20,000,000' }, { value: '16', label: 'Lebih dari Rp. 20,000,000' },
+    { value: '17', label: '<Rp. 1,000,000' },
+    { value: '18', label: 'Rp1.000.001 â€“ Rp3.000.000' },
     { value: '99', label: 'Tidak Berpenghasilan' }
   ];
 
