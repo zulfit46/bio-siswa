@@ -21,7 +21,10 @@ import {
   Upload,
   FileText,
   FileDown,
-  Printer
+  Printer,
+  Check,
+  ChevronDown,
+  MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF } from 'jspdf';
@@ -242,6 +245,28 @@ export default function App() {
     }
   };
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [wilayahList, setWilayahList] = useState<{ nama_wil: string; kode_wil: string }[]>([]);
+  const [isLoadingWilayah, setIsLoadingWilayah] = useState(false);
+
+  useEffect(() => {
+    const fetchWilayah = async () => {
+      setIsLoadingWilayah(true);
+      try {
+        const response = await fetch(`${SCRIPT_URL}?action=get_wilayah`);
+        if (response.ok) {
+          const json = await response.json();
+          if (json && json.success && Array.isArray(json.data)) {
+            setWilayahList(json.data);
+          }
+        }
+      } catch (err) {
+        console.error('Gagal mengambil data wilayah:', err);
+      } finally {
+        setIsLoadingWilayah(false);
+      }
+    };
+    fetchWilayah();
+  }, []);
 
   // Initial state with the requested fields
   const [formData, setFormData] = useState({
@@ -263,6 +288,8 @@ export default function App() {
     kel: '',
     kec: '',
     kab_kota: '',
+    nama_wil: '',
+    kode_wil: '',
     kode_pos: '',
     jenis_tinggal: '',
     alat_transportasi: '',
@@ -578,8 +605,8 @@ export default function App() {
             </div>
             
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-white">Biodata Siswa</h1>
-              <p className="text-slate-400">SMKN 1 Palopo • Sistem Informasi Dapodik</p>
+              <h1 className="text-3xl font-bold tracking-tight text-white">Biodata Murid Baru</h1>
+              <p className="text-slate-400">SMKN 1 Palopo • Dapodik</p>
             </div>
 
             <form onSubmit={handleLogin} className="w-full space-y-6 pt-4">
@@ -885,7 +912,7 @@ export default function App() {
                   formData={formData} 
                 />
               )}
-              {activeSection === 'profil' && <ProfilEditView formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />}
+              {activeSection === 'profil' && <ProfilEditView formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} wilayahList={wilayahList} isLoadingWilayah={isLoadingWilayah} />}
               {activeSection === 'orangtua' && <OrangTuaView formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />}
               {activeSection === 'registrasi' && <RegistrasiView formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />}
               {activeSection === 'periodik' && <PeriodikView formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />}
@@ -1348,7 +1375,168 @@ function DashboardView({
   );
 }
 
-function ProfilEditView({ formData, handleInputChange, setFormData }: { formData: any, handleInputChange: any, setFormData: any }) {
+function WilayahSelect({ 
+  formData, 
+  setFormData, 
+  wilayahList, 
+  isLoadingWilayah 
+}: { 
+  formData: any; 
+  setFormData: any; 
+  wilayahList: { nama_wil: string; kode_wil: string }[];
+  isLoadingWilayah?: boolean;
+}) {
+  const [searchTerm, setSearchTerm] = useState(formData.nama_wil || '');
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (formData.nama_wil !== undefined) {
+      setSearchTerm(formData.nama_wil || '');
+    }
+  }, [formData.nama_wil]);
+
+  const filteredWilayah = React.useMemo(() => {
+    if (!searchTerm || !searchTerm.trim()) return wilayahList.slice(0, 30);
+    const term = searchTerm.toLowerCase().trim();
+    return wilayahList.filter(item => 
+      (item.nama_wil && item.nama_wil.toLowerCase().includes(term)) ||
+      (item.kode_wil && item.kode_wil.toLowerCase().includes(term))
+    ).slice(0, 50);
+  }, [wilayahList, searchTerm]);
+
+  const handleSelect = (item: { nama_wil: string; kode_wil: string }) => {
+    setSearchTerm(item.nama_wil);
+    setFormData((prev: any) => ({
+      ...prev,
+      nama_wil: item.nama_wil,
+      kode_wil: item.kode_wil
+    }));
+    setIsOpen(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchTerm(val);
+    setIsOpen(true);
+    setFormData((prev: any) => ({
+      ...prev,
+      nama_wil: val
+    }));
+  };
+
+  return (
+    <div className="relative z-30 space-y-2 sm:col-span-3">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          Wilayah (Kelurahan / Kecamatan / Kab. Kota) <span className="text-red-500">*</span>
+        </label>
+        {formData.kode_wil && (
+          <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-semibold">
+            Kode Wilayah: {formData.kode_wil}
+          </span>
+        )}
+      </div>
+
+      <div className="relative">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleInputChange}
+          onFocus={() => setIsOpen(true)}
+          placeholder="Ketik nama wilayah (Kelurahan / Kecamatan / Kab. Kota)..."
+          className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-10 focus:outline-none focus:border-blue-500/50 transition-all text-sm"
+        />
+        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        {searchTerm ? (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchTerm('');
+              setFormData((prev: any) => ({ ...prev, nama_wil: '', kode_wil: '' }));
+              setIsOpen(true);
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+          >
+            <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
+        )}
+      </div>
+
+      {/* Dropdown list */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div 
+              className="fixed inset-0 z-[100]" 
+              onClick={() => setIsOpen(false)} 
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              className="absolute z-[101] top-full left-0 right-0 mt-1.5 bg-[#181b24] border border-white/15 rounded-xl shadow-2xl max-h-60 overflow-y-auto divide-y divide-white/5"
+            >
+              {isLoadingWilayah ? (
+                <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Memuat data wilayah dari sheet...</span>
+                </div>
+              ) : filteredWilayah.length > 0 ? (
+                filteredWilayah.map((item, idx) => {
+                  const isSelected = formData.nama_wil === item.nama_wil && formData.kode_wil === item.kode_wil;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelect(item)}
+                      className={`w-full text-left px-4 py-3 text-xs flex items-center justify-between hover:bg-blue-500/20 transition-all ${
+                        isSelected ? 'bg-blue-500/15 text-blue-400 font-semibold' : 'text-slate-200'
+                      }`}
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-medium text-slate-100 text-xs">{item.nama_wil}</span>
+                        {item.kode_wil && (
+                          <span className="text-[10px] text-slate-400 font-mono">Kode: {item.kode_wil}</span>
+                        )}
+                      </div>
+                      {isSelected && <Check className="w-4 h-4 text-blue-400 shrink-0 ml-2" />}
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="p-4 text-center text-xs text-slate-400">
+                  Data wilayah tidak ditemukan dalam daftar. Anda dapat mengetik nama wilayah secara langsung.
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function ProfilEditView({ 
+  formData, 
+  handleInputChange, 
+  setFormData, 
+  wilayahList, 
+  isLoadingWilayah 
+}: { 
+  formData: any; 
+  handleInputChange: any; 
+  setFormData: any; 
+  wilayahList: { nama_wil: string; kode_wil: string }[]; 
+  isLoadingWilayah?: boolean; 
+}) {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
@@ -1376,9 +1564,6 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
       { key: 'tanggal_lahir', label: 'Tanggal Lahir' },
       { key: 'no_kk', label: 'No. Kartu Keluarga' },
       { key: 'alamat_jalan', label: 'Alamat Jalan' },
-      { key: 'kel', label: 'Kelurahan' },
-      { key: 'kec', label: 'Kecamatan' },
-      { key: 'kab_kota', label: 'Kabupaten/Kota' },
       { key: 'jenis_tinggal', label: 'Jenis Tinggal' },
       { key: 'alat_transportasi', label: 'Alat Transportasi' },
       { key: 'no_hp', label: 'No. HP' },
@@ -1393,6 +1578,14 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
         setTimeout(() => setShowError(false), 4000);
         return;
       }
+    }
+
+    // Cek Wilayah
+    if (!formData.nama_wil && (!formData.kel || !formData.kec || !formData.kab_kota)) {
+      setErrorMessage('Gagal menyimpan: Field "Wilayah" wajib dipilih/diisi.');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 4000);
+      return;
     }
 
     // Validasi NIK harus 16 karakter
@@ -1434,6 +1627,8 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
         kel: String(formData.kel || ''),
         kec: String(formData.kec || ''),
         kab_kota: String(formData.kab_kota || ''),
+        nama_wil: String(formData.nama_wil || ''),
+        kode_wil: String(formData.kode_wil || ''),
         kode_pos: String(formData.kode_pos || ''),
         jenis_tinggal: String(formData.jenis_tinggal || ''),
         alat_transportasi: String(formData.alat_transportasi || ''),
@@ -1654,7 +1849,7 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
           </div>
 
           {/* Alamat & Domisili */}
-          <div className="glass-card p-4 sm:p-8 space-y-6">
+          <div className="glass-card p-4 sm:p-8 space-y-6 relative z-20">
             <h3 className="text-lg font-bold border-b border-white/5 pb-4 flex items-center gap-2">
               <LayoutDashboard className="w-5 h-5 text-emerald-400" /> Alamat & Domisili
             </h3>
@@ -1675,23 +1870,17 @@ function ProfilEditView({ formData, handleInputChange, setFormData }: { formData
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kode Pos</label>
                 <input name="kode_pos" value={formData.kode_pos} onChange={handleInputChange} type="text" placeholder="00000" maxLength={5} className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kelurahan <span className="text-red-500">*</span></label>
-                <input name="kel" value={formData.kel} onChange={handleInputChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kecamatan <span className="text-red-500">*</span></label>
-                <input name="kec" value={formData.kec} onChange={handleInputChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kabupaten/Kota <span className="text-red-500">*</span></label>
-                <input name="kab_kota" value={formData.kab_kota} onChange={handleInputChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
-              </div>
+              <WilayahSelect 
+                formData={formData} 
+                setFormData={setFormData} 
+                wilayahList={wilayahList} 
+                isLoadingWilayah={isLoadingWilayah} 
+              />
             </div>
           </div>
 
           {/* Lainnya */}
-          <div className="glass-card p-4 sm:p-8 space-y-6">
+          <div className="glass-card p-4 sm:p-8 space-y-6 relative z-10">
             <h3 className="text-lg font-bold border-b border-white/5 pb-4 flex items-center gap-2">
               <Settings className="w-5 h-5 text-amber-400" /> Informasi Tambahan
             </h3>
