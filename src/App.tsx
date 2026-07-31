@@ -1084,7 +1084,7 @@ function PDFTemplate({ formData, getLabel, religionMapping, stayMapping, transpo
     <div style={{ width: '210mm', padding: '20mm', color: '#000', backgroundColor: '#fff', fontFamily: 'Arial, sans-serif' }}>
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', color: '#000', textTransform: 'uppercase' }}>DATA PESERTA DIDIK</h1>
-        <p style={{ fontSize: '14px', margin: '5px 0', color: '#333' }}>Data Terkini Tahun Ajaran 2025/2026</p>
+        <p style={{ fontSize: '14px', margin: '5px 0', color: '#333' }}>Data Terkini Tahun Ajaran 2026/2027</p>
         <div style={{ borderBottom: '2px solid #000', marginTop: '10px' }}></div>
       </div>
 
