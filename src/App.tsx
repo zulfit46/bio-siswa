@@ -1390,11 +1390,20 @@ function WilayahSelect({
     const val = e.target.value;
     setSearchTerm(val);
     setIsOpen(true);
+    const matched = wilayahList.find(w => w.nama_wil.toLowerCase() === val.trim().toLowerCase());
     setFormData((prev: any) => ({
       ...prev,
-      nama_wil: val
+      nama_wil: val,
+      kode_wil: matched ? matched.kode_wil : ''
     }));
   };
+
+  const isInvalidTypedWilayah = Boolean(
+    searchTerm &&
+    searchTerm.trim() !== '' &&
+    wilayahList.length > 0 &&
+    !wilayahList.some(item => item.nama_wil.toLowerCase() === searchTerm.trim().toLowerCase())
+  );
 
   return (
     <div className="relative z-30 space-y-2 sm:col-span-3">
@@ -1415,8 +1424,10 @@ function WilayahSelect({
           value={searchTerm}
           onChange={handleInputChange}
           onFocus={() => setIsOpen(true)}
-          placeholder="Ketik nama wilayah (Kelurahan / Kecamatan / Kab. Kota)..."
-          className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-10 focus:outline-none focus:border-blue-500/50 transition-all text-sm"
+          placeholder="Ketik & pilih nama wilayah dari daftar pilihan..."
+          className={`w-full bg-white/5 border ${
+            isInvalidTypedWilayah ? 'border-red-500/60 focus:border-red-500' : 'border-white/10 focus:border-blue-500/50'
+          } rounded-xl py-3 pl-10 pr-10 focus:outline-none transition-all text-sm`}
         />
         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
         {searchTerm ? (
@@ -1441,6 +1452,12 @@ function WilayahSelect({
           </button>
         )}
       </div>
+
+      {isInvalidTypedWilayah && (
+        <p className="text-[10px] text-red-400 font-medium">
+          Wilayah yang diketik tidak ditemukan dalam pilihan. Data tidak dapat disimpan jika tidak memilih dari daftar pilihan.Hubungi Operator Dapodik - 0895433704646
+        </p>
+      )}
 
       {/* Dropdown list */}
       <AnimatePresence>
@@ -1484,8 +1501,8 @@ function WilayahSelect({
                   );
                 })
               ) : (
-                <div className="p-4 text-center text-xs text-slate-400">
-                  Data wilayah tidak ditemukan dalam daftar. Anda dapat mengetik nama wilayah secara langsung.
+                <div className="p-4 text-center text-xs text-rose-400 font-medium">
+                  Data wilayah tidak ditemukan dalam daftar pilihan. Harap pilih wilayah yang tersedia dalam daftar.
                 </div>
               )}
             </motion.div>
@@ -1552,12 +1569,29 @@ function ProfilEditView({
       }
     }
 
-    // Cek Wilayah
-    if (!formData.nama_wil && (!formData.kel || !formData.kec || !formData.kab_kota)) {
-      setErrorMessage('Gagal menyimpan: Field "Wilayah" wajib dipilih/diisi.');
+    // Validasi Field Wilayah (Wajib & Harus Sesuai Opsi Pilihan)
+    const currentWil = (formData.nama_wil || '').toString().trim();
+    if (!currentWil) {
+      setErrorMessage('Gagal menyimpan: Field "Wilayah" wajib dipilih dari daftar pilihan.');
       setShowError(true);
       setTimeout(() => setShowError(false), 4000);
       return;
+    }
+
+    if (wilayahList && wilayahList.length > 0) {
+      const matchedOption = wilayahList.find(
+        w => w.nama_wil.toLowerCase() === currentWil.toLowerCase()
+      );
+      if (!matchedOption) {
+        setErrorMessage('Gagal menyimpan: Data wilayah tidak ditemukan dalam pilihan. Harap pilih wilayah yang tersedia dari daftar.');
+        setShowError(true);
+        setTimeout(() => setShowError(false), 4000);
+        return;
+      } else {
+        // Sinkronkan nama_wil dan kode_wil resmi dari data pilihan
+        formData.nama_wil = matchedOption.nama_wil;
+        formData.kode_wil = matchedOption.kode_wil;
+      }
     }
 
     // Validasi NIK harus 16 karakter
