@@ -299,14 +299,14 @@ export default function App() {
     jurusan: '',
     // Data Orang Tua
     nama_ayah: '',
-    status_hidup_ayah: 'Hidup',
+    status_hidup_ayah: '',
     nik_ayah: '',
     tahun_lahir_ayah: '',
     jenjang_pendidikan_ayah: '',
     pekerjaan_ayah: '',
     penghasilan_ayah: '',
     nama_ibu: '',
-    status_hidup_ibu: 'Hidup',
+    status_hidup_ibu: '',
     nik_ibu: '',
     tahun_lahir_ibu: '',
     jenjang_pendidikan_ibu: '',
@@ -415,8 +415,8 @@ export default function App() {
           if (mappedData.jk === 'Laki-laki') mappedData.jk = 'L';
           if (mappedData.jk === 'Perempuan') mappedData.jk = 'P';
           
-          mappedData.status_hidup_ayah = mappedData.status_hidup_ayah || 'Hidup';
-          mappedData.status_hidup_ibu = mappedData.status_hidup_ibu || 'Hidup';
+          mappedData.status_hidup_ayah = mappedData.status_hidup_ayah || '';
+          mappedData.status_hidup_ibu = mappedData.status_hidup_ibu || '';
           mappedData.initial_tempat_lahir = mappedData.tempat_lahir ? String(mappedData.tempat_lahir).trim() : '';
           mappedData.initial_tanggal_lahir = mappedData.tanggal_lahir ? String(mappedData.tanggal_lahir).trim() : '';
           
@@ -508,14 +508,14 @@ export default function App() {
       rombel: '',
       jurusan: '',
       nama_ayah: '',
-      status_hidup_ayah: 'Hidup',
+      status_hidup_ayah: '',
       nik_ayah: '',
       tahun_lahir_ayah: '',
       jenjang_pendidikan_ayah: '',
       pekerjaan_ayah: '',
       penghasilan_ayah: '',
       nama_ibu: '',
-      status_hidup_ibu: 'Hidup',
+      status_hidup_ibu: '',
       nik_ibu: '',
       tahun_lahir_ibu: '',
       jenjang_pendidikan_ibu: '',
@@ -1220,6 +1220,9 @@ function DashboardView({
     if (fields.length === 0) return { status: 'Lengkap', color: 'emerald', percent: 100 };
     
     const filledFields = fields.filter(field => {
+      if (field === 'wilayah') {
+        return Boolean(formData.nama_wil || (formData.kel && formData.kec && formData.kab_kota));
+      }
       const value = formData[field];
       if (Array.isArray(value)) return value.length > 0;
       return value !== undefined && value !== null && value !== '';
@@ -1235,11 +1238,11 @@ function DashboardView({
   const sections = [
     { 
       label: 'Profil Saya', 
-      getRequiredFields: () => ['nama', 'jk', 'nipd', 'nisn', 'nik', 'agama', 'tempat_lahir', 'tanggal_lahir', 'no_kk', 'alamat_jalan', 'kel', 'kec', 'kab_kota', 'jenis_tinggal', 'alat_transportasi', 'no_hp', 'jurusan'] 
+      getRequiredFields: () => ['nama', 'jk', 'nipd', 'nisn', 'nik', 'agama', 'tempat_lahir', 'tanggal_lahir', 'no_kk', 'alamat_jalan', 'wilayah', 'jenis_tinggal', 'alat_transportasi', 'no_hp', 'jurusan'] 
     },
     { 
       label: 'Data Orang Tua', 
-      getRequiredFields: () => ['nama_ayah', 'nik_ayah', 'tahun_lahir_ayah', 'jenjang_pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah', 'nama_ibu', 'nik_ibu', 'tahun_lahir_ibu', 'jenjang_pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu'] 
+      getRequiredFields: () => ['status_hidup_ayah', 'nama_ayah', 'nik_ayah', 'tahun_lahir_ayah', 'jenjang_pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah', 'status_hidup_ibu', 'nama_ibu', 'nik_ibu', 'tahun_lahir_ibu', 'jenjang_pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu'] 
     },
     { 
       label: 'Registrasi Peserta Didik', 
@@ -1251,37 +1254,6 @@ function DashboardView({
         const fields = ['tinggi_badan', 'berat_badan', 'lingkar_kepala', 'jumlah_saudara_kandung', 'anak_ke', 'jarak_rumah_ke_sekolah', 'waktu_tempuh'];
         if (formData.jarak_rumah_ke_sekolah === '2') {
           fields.push('sebutkan_kilometer');
-        }
-        return fields;
-      }
-    },
-    { 
-      label: 'Siswa Kurang Mampu', 
-      getRequiredFields: () => {
-        const fields = ['kurang_mampu'];
-        if (formData.kurang_mampu === 'Ya') {
-          fields.push('ket_kip');
-          if (formData.ket_kip === 'Ya') {
-            fields.push('no_kip', 'nama_di_kip', 'upload_kip');
-          }
-          if (['PKH', 'KKS', 'SKTM'].includes(formData.kartu_lain)) {
-            fields.push('nama_dikartu', 'no_kartu', 'upload_kartu');
-          }
-        }
-        return fields;
-      }
-    },
-    { 
-      label: 'Verval Ijazah', 
-      getRequiredFields: () => {
-        const fields = ['status_verval'];
-        if (formData.status_verval === 'Tidak') {
-          fields.push('data_salah');
-          if (Array.isArray(formData.data_salah)) {
-            if (formData.data_salah.includes('nama')) fields.push('nama_verval');
-            if (formData.data_salah.includes('tempat lahir')) fields.push('tempat_lahir_verval');
-            if (formData.data_salah.includes('tanggal lahir')) fields.push('tanggal_lahir_verval');
-          }
         }
         return fields;
       }
@@ -1638,12 +1610,14 @@ function ProfilEditView({
         jurusan: String(formData.jurusan || ''),
         // Data Orang Tua (Kolom X - AI)
         nama_ayah: String(formData.nama_ayah || ''),
+        status_hidup_ayah: String(formData.status_hidup_ayah || ''),
         nik_ayah: String(formData.nik_ayah || ''),
         tahun_lahir_ayah: String(formData.tahun_lahir_ayah || ''),
         jenjang_pendidikan_ayah: String(formData.jenjang_pendidikan_ayah || ''),
         pekerjaan_ayah: String(formData.pekerjaan_ayah || ''),
         penghasilan_ayah: String(formData.penghasilan_ayah || ''),
         nama_ibu: String(formData.nama_ibu || ''),
+        status_hidup_ibu: String(formData.status_hidup_ibu || ''),
         nik_ibu: String(formData.nik_ibu || ''),
         tahun_lahir_ibu: String(formData.tahun_lahir_ibu || ''),
         jenjang_pendidikan_ibu: String(formData.jenjang_pendidikan_ibu || ''),
@@ -2021,7 +1995,7 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
       } else {
         setFormData((prev: any) => ({
           ...prev,
-          status_hidup_ayah: prev.status_hidup_ayah === 'Wafat' ? 'Hidup' : (prev.status_hidup_ayah || 'Hidup')
+          status_hidup_ayah: prev.status_hidup_ayah === 'Wafat' ? 'Hidup' : prev.status_hidup_ayah
         }));
       }
     } else if (name === 'status_hidup_ibu') {
@@ -2049,7 +2023,7 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
       } else {
         setFormData((prev: any) => ({
           ...prev,
-          status_hidup_ibu: prev.status_hidup_ibu === 'Wafat' ? 'Hidup' : (prev.status_hidup_ibu || 'Hidup')
+          status_hidup_ibu: prev.status_hidup_ibu === 'Wafat' ? 'Hidup' : prev.status_hidup_ibu
         }));
       }
     }
@@ -2222,14 +2196,14 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
         jurusan: String(formData.jurusan || ''),
         // Data Orang Tua (Kolom X - AI)
         nama_ayah: String(formData.nama_ayah || ''),
-        status_hidup_ayah: String(formData.status_hidup_ayah || 'Hidup'),
+        status_hidup_ayah: String(formData.status_hidup_ayah || ''),
         nik_ayah: String(formData.nik_ayah || ''),
         tahun_lahir_ayah: String(formData.tahun_lahir_ayah || ''),
         jenjang_pendidikan_ayah: String(formData.jenjang_pendidikan_ayah || ''),
         pekerjaan_ayah: String(formData.pekerjaan_ayah || ''),
         penghasilan_ayah: String(formData.penghasilan_ayah || ''),
         nama_ibu: String(formData.nama_ibu || ''),
-        status_hidup_ibu: String(formData.status_hidup_ibu || 'Hidup'),
+        status_hidup_ibu: String(formData.status_hidup_ibu || ''),
         nik_ibu: String(formData.nik_ibu || ''),
         tahun_lahir_ibu: String(formData.tahun_lahir_ibu || ''),
         jenjang_pendidikan_ibu: String(formData.jenjang_pendidikan_ibu || ''),
@@ -2319,7 +2293,8 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Hidup Ayah <span className="text-red-500">*</span></label>
-              <select name="status_hidup_ayah" value={formData.status_hidup_ayah || 'Hidup'} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+              <select name="status_hidup_ayah" value={formData.status_hidup_ayah || ''} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+                <option value="">Pilih Status Hidup</option>
                 <option value="Hidup">Hidup</option>
                 <option value="Wafat">Wafat</option>
               </select>
@@ -2398,7 +2373,8 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Hidup Ibu <span className="text-red-500">*</span></label>
-              <select name="status_hidup_ibu" value={formData.status_hidup_ibu || 'Hidup'} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+              <select name="status_hidup_ibu" value={formData.status_hidup_ibu || ''} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+                <option value="">Pilih Status Hidup</option>
                 <option value="Hidup">Hidup</option>
                 <option value="Wafat">Wafat</option>
               </select>
