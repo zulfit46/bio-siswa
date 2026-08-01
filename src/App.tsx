@@ -1246,7 +1246,7 @@ function DashboardView({
     },
     { 
       label: 'Registrasi Peserta Didik', 
-      getRequiredFields: () => ['sekolah_asal', 'id_hobby', 'id_cita', 'no_peserta_ujian', 'no_seri_ijazah'] 
+      getRequiredFields: () => ['sekolah_asal', 'id_hobby', 'id_cita'] 
     },
     { 
       label: 'Data Periodik', 
