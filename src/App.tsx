@@ -556,6 +556,48 @@ export default function App() {
   };
 
   const menuItems = allMenuItems.filter(item => {
+    // Normalisasi spasi berlebih dan huruf kecil untuk Rombel siswa
+    const studentRombel = (formData.rombel || '')
+      .toString()
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+
+    // 1. Cek batasan Rombel khusus jika ada field akses_rombel (misal: "10 MPLB 1" atau "10 MPLB 1, 10 AKL 1")
+    if (formData.akses_rombel && formData.akses_rombel !== 'all') {
+      const allowedRombels = formData.akses_rombel
+        .split(',')
+        .map((r: string) => r.replace(/\s+/g, ' ').trim().toLowerCase());
+      if (!allowedRombels.includes(studentRombel)) {
+        // Jika rombel siswa tidak diizinkan, hanya tampilkan menu publik (dashboard & notifikasi)
+        return item.id === 'dashboard' || item.id === 'notifikasi';
+      }
+    }
+
+    // 2. Cek format spesifik per-rombel di kolom akses_menu (misal: "10 AKL 1 : dashboard, profil, registrasi, periodik")
+    if (formData.akses_menu && formData.akses_menu.includes(':')) {
+      const rules = formData.akses_menu.split('|').map((r: string) => r.trim());
+      const matchedRule = rules.find((rule: string) => {
+        const [targetRombel] = rule.split(':');
+        if (!targetRombel) return false;
+        const targetRombels = targetRombel
+          .split(',')
+          .map((r: string) => r.replace(/\s+/g, ' ').trim().toLowerCase());
+        return targetRombels.includes('all') || (studentRombel !== '' && targetRombels.includes(studentRombel));
+      });
+
+      if (matchedRule) {
+        const [, allowedMenus] = matchedRule.split(':');
+        if (!allowedMenus) return item.id === 'dashboard' || item.id === 'notifikasi';
+        const allowed = allowedMenus.split(',').map((s: string) => s.trim().toLowerCase());
+        return allowed.includes(item.id.toLowerCase());
+      } else {
+        // Jika rombel siswa tidak ada di daftar aturan Rombel, hanya berikan dashboard & notifikasi
+        return item.id === 'dashboard' || item.id === 'notifikasi';
+      }
+    }
+
+    // 3. Standar filter akses_menu tanpa format Rombel (misal: "dashboard,profil,registrasi")
     if (!formData.akses_menu || formData.akses_menu === 'all') return true;
     const allowed = formData.akses_menu.split(',').map((s: string) => s.trim().toLowerCase());
     return allowed.includes(item.id.toLowerCase());
@@ -1321,6 +1363,27 @@ function DashboardView({
           </motion.div>
         ))}
       </div>
+
+      {formData.rombel && (
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs shrink-0">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-blue-300">
+                Hak Akses Rombel: <span className="text-white font-bold">{formData.rombel}</span>
+              </p>
+              <p className="text-[11px] text-slate-400">
+                Menu navigasi disesuaikan secara otomatis berdasarkan rombel Anda ({formData.rombel}).
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full font-mono font-medium border border-blue-500/30 shrink-0">
+            Akses Rombel Terverifikasi
+          </span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6">
         <div className="glass-card p-4 sm:p-8">
