@@ -2355,164 +2355,203 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
 
       <div className="max-w-4xl mx-auto space-y-8 pb-20">
         {/* Data Ayah */}
-        <div className="glass-card p-4 sm:p-8 space-y-6">
-          <h3 className="text-lg font-bold border-b border-white/5 pb-4 flex items-center gap-2">
-            <User className="w-5 h-5 text-blue-400" /> Data Ayah Kandung
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Ayah Kandung <span className="text-red-500">*</span></label>
-              <input name="nama_ayah" value={formData.nama_ayah} onChange={onFieldChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Hidup Ayah <span className="text-red-500">*</span></label>
-              <select name="status_hidup_ayah" value={formData.status_hidup_ayah || ''} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
-                <option value="">Pilih Status Hidup</option>
-                <option value="Hidup">Hidup</option>
-                <option value="Wafat">Wafat</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                NIK Ayah {(formData.pekerjaan_ayah !== '98' && formData.status_hidup_ayah !== 'Wafat') && <span className="text-red-500">*</span>}
-              </label>
-              <input 
-                name="nik_ayah" 
-                value={formData.nik_ayah} 
-                onChange={onFieldChange} 
-                type="text" 
-                maxLength={16}
-                placeholder={(formData.pekerjaan_ayah === '98' || formData.status_hidup_ayah === 'Wafat') ? "Opsional (Alm)" : "16 digit NIK"}
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono" 
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tahun Lahir Ayah <span className="text-red-500">*</span></label>
-              <input 
-                name="tahun_lahir_ayah" 
-                value={formData.tahun_lahir_ayah} 
-                onChange={onFieldChange} 
-                type="text" 
-                maxLength={4}
-                placeholder="Contoh: 1980"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono" 
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pendidikan Terakhir <span className="text-red-500">*</span></label>
-              <select name="jenjang_pendidikan_ayah" value={formData.jenjang_pendidikan_ayah} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
-                <option value="">Pilih Pendidikan</option>
-                {jenjangPendidikan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pekerjaan <span className="text-red-500">*</span></label>
-              <select 
-                name="pekerjaan_ayah" 
-                value={formData.pekerjaan_ayah} 
-                onChange={onFieldChange} 
-                disabled={formData.status_hidup_ayah === 'Wafat'}
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
-              >
-                <option value="">Pilih Pekerjaan</option>
-                {pekerjaan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Penghasilan Bulanan <span className="text-red-500">*</span></label>
-              <select 
-                name="penghasilan_ayah" 
-                value={formData.penghasilan_ayah} 
-                onChange={onFieldChange} 
-                disabled={formData.pekerjaan_ayah === '1' || formData.pekerjaan_ayah === '98' || formData.status_hidup_ayah === 'Wafat'}
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
-              >
-                <option value="">Pilih Penghasilan</option>
-                {penghasilan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
+        {(() => {
+          const isAyahReady = Boolean(formData.nama_ayah && formData.nama_ayah.toString().trim() !== '' && formData.status_hidup_ayah);
+          const isIbuReady = Boolean(formData.nama_ibu && formData.nama_ibu.toString().trim() !== '' && formData.status_hidup_ibu);
 
-        {/* Data Ibu */}
-        <div className="glass-card p-4 sm:p-8 space-y-6">
-          <h3 className="text-lg font-bold border-b border-white/5 pb-4 flex items-center gap-2">
-            <User className="w-5 h-5 text-purple-400" /> Data Ibu Kandung
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Ibu Kandung <span className="text-red-500">*</span></label>
-              <input name="nama_ibu" value={formData.nama_ibu} onChange={onFieldChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Hidup Ibu <span className="text-red-500">*</span></label>
-              <select name="status_hidup_ibu" value={formData.status_hidup_ibu || ''} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
-                <option value="">Pilih Status Hidup</option>
-                <option value="Hidup">Hidup</option>
-                <option value="Wafat">Wafat</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                NIK Ibu {(formData.pekerjaan_ibu !== '98' && formData.status_hidup_ibu !== 'Wafat') && <span className="text-red-500">*</span>}
-              </label>
-              <input 
-                name="nik_ibu" 
-                value={formData.nik_ibu} 
-                onChange={onFieldChange} 
-                type="text" 
-                maxLength={16}
-                placeholder={(formData.pekerjaan_ibu === '98' || formData.status_hidup_ibu === 'Wafat') ? "Opsional (Alm)" : "16 digit NIK"}
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono" 
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tahun Lahir Ibu <span className="text-red-500">*</span></label>
-              <input 
-                name="tahun_lahir_ibu" 
-                value={formData.tahun_lahir_ibu} 
-                onChange={onFieldChange} 
-                type="text" 
-                maxLength={4}
-                placeholder="Contoh: 1985"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono" 
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pendidikan Terakhir <span className="text-red-500">*</span></label>
-              <select name="jenjang_pendidikan_ibu" value={formData.jenjang_pendidikan_ibu} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
-                <option value="">Pilih Pendidikan</option>
-                {jenjangPendidikan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pekerjaan <span className="text-red-500">*</span></label>
-              <select 
-                name="pekerjaan_ibu" 
-                value={formData.pekerjaan_ibu} 
-                onChange={onFieldChange} 
-                disabled={formData.status_hidup_ibu === 'Wafat'}
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
-              >
-                <option value="">Pilih Pekerjaan</option>
-                {pekerjaan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Penghasilan Bulanan <span className="text-red-500">*</span></label>
-              <select 
-                name="penghasilan_ibu" 
-                value={formData.penghasilan_ibu} 
-                onChange={onFieldChange} 
-                disabled={formData.pekerjaan_ibu === '1' || formData.pekerjaan_ibu === '98' || formData.status_hidup_ibu === 'Wafat'}
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-50"
-              >
-                <option value="">Pilih Penghasilan</option>
-                {penghasilan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
+          return (
+            <>
+              <div className="glass-card p-4 sm:p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/5 pb-4 gap-2">
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <User className="w-5 h-5 text-blue-400" /> Data Ayah Kandung
+                  </h3>
+                  {!isAyahReady && (
+                    <span className="text-[11px] text-amber-400 font-medium bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-md">
+                      Isi Nama &amp; Status Hidup terlebih dahulu untuk membuka field lainnya
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Ayah Kandung <span className="text-red-500">*</span></label>
+                    <input name="nama_ayah" value={formData.nama_ayah || ''} onChange={onFieldChange} type="text" placeholder="Ketik nama lengkap ayah" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Hidup Ayah <span className="text-red-500">*</span></label>
+                    <select name="status_hidup_ayah" value={formData.status_hidup_ayah || ''} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+                      <option value="">Pilih Status Hidup</option>
+                      <option value="Hidup">Hidup</option>
+                      <option value="Wafat">Wafat</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      NIK Ayah {(formData.pekerjaan_ayah !== '98' && formData.status_hidup_ayah !== 'Wafat') && <span className="text-red-500">*</span>}
+                    </label>
+                    <input 
+                      name="nik_ayah" 
+                      value={formData.nik_ayah || ''} 
+                      onChange={onFieldChange} 
+                      type="text" 
+                      maxLength={16}
+                      disabled={!isAyahReady}
+                      placeholder={!isAyahReady ? "Isi Nama & Status Hidup dulu" : ((formData.pekerjaan_ayah === '98' || formData.status_hidup_ayah === 'Wafat') ? "Opsional (Alm)" : "16 digit NIK")}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono disabled:opacity-40 disabled:cursor-not-allowed" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tahun Lahir Ayah <span className="text-red-500">*</span></label>
+                    <input 
+                      name="tahun_lahir_ayah" 
+                      value={formData.tahun_lahir_ayah || ''} 
+                      onChange={onFieldChange} 
+                      type="text" 
+                      maxLength={4}
+                      disabled={!isAyahReady}
+                      placeholder={!isAyahReady ? "Isi Nama & Status Hidup dulu" : "Contoh: 1980"}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono disabled:opacity-40 disabled:cursor-not-allowed" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pendidikan Terakhir <span className="text-red-500">*</span></label>
+                    <select 
+                      name="jenjang_pendidikan_ayah" 
+                      value={formData.jenjang_pendidikan_ayah || ''} 
+                      onChange={onFieldChange} 
+                      disabled={!isAyahReady}
+                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Pilih Pendidikan</option>
+                      {jenjangPendidikan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pekerjaan <span className="text-red-500">*</span></label>
+                    <select 
+                      name="pekerjaan_ayah" 
+                      value={formData.pekerjaan_ayah || ''} 
+                      onChange={onFieldChange} 
+                      disabled={!isAyahReady || formData.status_hidup_ayah === 'Wafat'}
+                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Pilih Pekerjaan</option>
+                      {pekerjaan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Penghasilan Bulanan <span className="text-red-500">*</span></label>
+                    <select 
+                      name="penghasilan_ayah" 
+                      value={formData.penghasilan_ayah || ''} 
+                      onChange={onFieldChange} 
+                      disabled={!isAyahReady || formData.pekerjaan_ayah === '1' || formData.pekerjaan_ayah === '98' || formData.status_hidup_ayah === 'Wafat'}
+                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Pilih Penghasilan</option>
+                      {penghasilan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Ibu */}
+              <div className="glass-card p-4 sm:p-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/5 pb-4 gap-2">
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <User className="w-5 h-5 text-purple-400" /> Data Ibu Kandung
+                  </h3>
+                  {!isIbuReady && (
+                    <span className="text-[11px] text-amber-400 font-medium bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-md">
+                      Isi Nama &amp; Status Hidup terlebih dahulu untuk membuka field lainnya
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Nama Ibu Kandung <span className="text-red-500">*</span></label>
+                    <input name="nama_ibu" value={formData.nama_ibu || ''} onChange={onFieldChange} type="text" placeholder="Ketik nama lengkap ibu" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Hidup Ibu <span className="text-red-500">*</span></label>
+                    <select name="status_hidup_ibu" value={formData.status_hidup_ibu || ''} onChange={onFieldChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+                      <option value="">Pilih Status Hidup</option>
+                      <option value="Hidup">Hidup</option>
+                      <option value="Wafat">Wafat</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      NIK Ibu {(formData.pekerjaan_ibu !== '98' && formData.status_hidup_ibu !== 'Wafat') && <span className="text-red-500">*</span>}
+                    </label>
+                    <input 
+                      name="nik_ibu" 
+                      value={formData.nik_ibu || ''} 
+                      onChange={onFieldChange} 
+                      type="text" 
+                      maxLength={16}
+                      disabled={!isIbuReady}
+                      placeholder={!isIbuReady ? "Isi Nama & Status Hidup dulu" : ((formData.pekerjaan_ibu === '98' || formData.status_hidup_ibu === 'Wafat') ? "Opsional (Alm)" : "16 digit NIK")}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono disabled:opacity-40 disabled:cursor-not-allowed" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tahun Lahir Ibu <span className="text-red-500">*</span></label>
+                    <input 
+                      name="tahun_lahir_ibu" 
+                      value={formData.tahun_lahir_ibu || ''} 
+                      onChange={onFieldChange} 
+                      type="text" 
+                      maxLength={4}
+                      disabled={!isIbuReady}
+                      placeholder={!isIbuReady ? "Isi Nama & Status Hidup dulu" : "Contoh: 1985"}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all font-mono disabled:opacity-40 disabled:cursor-not-allowed" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pendidikan Terakhir <span className="text-red-500">*</span></label>
+                    <select 
+                      name="jenjang_pendidikan_ibu" 
+                      value={formData.jenjang_pendidikan_ibu || ''} 
+                      onChange={onFieldChange} 
+                      disabled={!isIbuReady}
+                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Pilih Pendidikan</option>
+                      {jenjangPendidikan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pekerjaan <span className="text-red-500">*</span></label>
+                    <select 
+                      name="pekerjaan_ibu" 
+                      value={formData.pekerjaan_ibu || ''} 
+                      onChange={onFieldChange} 
+                      disabled={!isIbuReady || formData.status_hidup_ibu === 'Wafat'}
+                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Pilih Pekerjaan</option>
+                      {pekerjaan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Penghasilan Bulanan <span className="text-red-500">*</span></label>
+                    <select 
+                      name="penghasilan_ibu" 
+                      value={formData.penghasilan_ibu || ''} 
+                      onChange={onFieldChange} 
+                      disabled={!isIbuReady || formData.pekerjaan_ibu === '1' || formData.pekerjaan_ibu === '98' || formData.status_hidup_ibu === 'Wafat'}
+                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Pilih Penghasilan</option>
+                      {penghasilan.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </>
+          );
+        })()}
 
         <div className="flex justify-end pt-4">
           <button 
