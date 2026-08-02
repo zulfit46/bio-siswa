@@ -1223,6 +1223,12 @@ function DashboardView({
       if (field === 'wilayah') {
         return Boolean(formData.nama_wil || (formData.kel && formData.kec && formData.kab_kota));
       }
+      if ((field === 'pekerjaan_ayah' || field === 'penghasilan_ayah') && (formData.status_hidup_ayah === 'Wafat' || formData.pekerjaan_ayah === '98')) {
+        return true;
+      }
+      if ((field === 'pekerjaan_ibu' || field === 'penghasilan_ibu') && (formData.status_hidup_ibu === 'Wafat' || formData.pekerjaan_ibu === '98')) {
+        return true;
+      }
       const value = formData[field];
       if (Array.isArray(value)) return value.length > 0;
       return value !== undefined && value !== null && value !== '';
@@ -1242,7 +1248,23 @@ function DashboardView({
     },
     { 
       label: 'Data Orang Tua', 
-      getRequiredFields: () => ['status_hidup_ayah', 'nama_ayah', 'nik_ayah', 'tahun_lahir_ayah', 'jenjang_pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah', 'status_hidup_ibu', 'nama_ibu', 'nik_ibu', 'tahun_lahir_ibu', 'jenjang_pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu'] 
+      getRequiredFields: () => {
+        const fields = ['status_hidup_ayah', 'nama_ayah', 'status_hidup_ibu', 'nama_ibu'];
+        
+        if (formData.status_hidup_ayah !== 'Wafat' && formData.pekerjaan_ayah !== '98') {
+          fields.push('nik_ayah', 'tahun_lahir_ayah', 'jenjang_pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah');
+        } else {
+          fields.push('pekerjaan_ayah', 'penghasilan_ayah');
+        }
+
+        if (formData.status_hidup_ibu !== 'Wafat' && formData.pekerjaan_ibu !== '98') {
+          fields.push('nik_ibu', 'tahun_lahir_ibu', 'jenjang_pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu');
+        } else {
+          fields.push('pekerjaan_ibu', 'penghasilan_ibu');
+        }
+
+        return fields;
+      } 
     },
     { 
       label: 'Registrasi Peserta Didik', 
@@ -2009,7 +2031,7 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
         setFormData((prev: any) => ({ 
           ...prev, 
           status_hidup_ayah: 'Wafat',
-          pekerjaan_ayah: '1', 
+          pekerjaan_ayah: '98', 
           penghasilan_ayah: '99' 
         }));
       } else if (value === 'Hidup') {
@@ -2037,7 +2059,7 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
         setFormData((prev: any) => ({ 
           ...prev, 
           status_hidup_ibu: 'Wafat',
-          pekerjaan_ibu: '1', 
+          pekerjaan_ibu: '98', 
           penghasilan_ibu: '99' 
         }));
       } else if (value === 'Hidup') {
@@ -2124,9 +2146,26 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
   ];
 
   const handleSave = async () => {
-    // List of mandatory fields
-    const requiredAyah = ['nama_ayah', 'status_hidup_ayah', 'tahun_lahir_ayah', 'jenjang_pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah'];
-    const requiredIbu = ['nama_ibu', 'status_hidup_ibu', 'tahun_lahir_ibu', 'jenjang_pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu'];
+    // List of mandatory fields based on status_hidup
+    const requiredAyah = ['nama_ayah', 'status_hidup_ayah'];
+    if (formData.status_hidup_ayah !== 'Wafat' && formData.pekerjaan_ayah !== '98') {
+      requiredAyah.push('tahun_lahir_ayah', 'jenjang_pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah');
+    }
+
+    const requiredIbu = ['nama_ibu', 'status_hidup_ibu'];
+    if (formData.status_hidup_ibu !== 'Wafat' && formData.pekerjaan_ibu !== '98') {
+      requiredIbu.push('tahun_lahir_ibu', 'jenjang_pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu');
+    }
+
+    // Auto defaults if Wafat
+    if (formData.status_hidup_ayah === 'Wafat' || formData.pekerjaan_ayah === '98') {
+      if (!formData.pekerjaan_ayah || formData.pekerjaan_ayah === '1') formData.pekerjaan_ayah = '98';
+      if (!formData.penghasilan_ayah) formData.penghasilan_ayah = '99';
+    }
+    if (formData.status_hidup_ibu === 'Wafat' || formData.pekerjaan_ibu === '98') {
+      if (!formData.pekerjaan_ibu || formData.pekerjaan_ibu === '1') formData.pekerjaan_ibu = '98';
+      if (!formData.penghasilan_ibu) formData.penghasilan_ibu = '99';
+    }
 
     // Check Ayah mandatory fields
     for (const field of requiredAyah) {
