@@ -952,6 +952,7 @@ export default function App() {
               {activeSection === 'dashboard' && (
                 <DashboardView 
                   formData={formData} 
+                  onNavigate={(section) => setActiveSection(section)}
                 />
               )}
               {activeSection === 'profil' && <ProfilEditView formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} wilayahList={wilayahList} isLoadingWilayah={isLoadingWilayah} />}
@@ -1253,43 +1254,107 @@ function PDFTemplate({ formData, getLabel, religionMapping, stayMapping, transpo
   );
 }
 
+const FIELD_LABELS: Record<string, string> = {
+  nama: 'Nama Lengkap',
+  jk: 'Jenis Kelamin',
+  nipd: 'NIPD (Nomor Induk Peserta Didik)',
+  nisn: 'NISN (Nomor Induk Siswa Nasional)',
+  nik: 'NIK Siswa (16 Digit)',
+  agama: 'Agama',
+  tempat_lahir: 'Tempat Lahir',
+  tanggal_lahir: 'Tanggal Lahir',
+  no_kk: 'Nomor Kartu Keluarga (KK)',
+  alamat_jalan: 'Alamat Jalan',
+  wilayah: 'Wilayah (Kelurahan/Kecamatan/Kab. Kota)',
+  jenis_tinggal: 'Jenis Tempat Tinggal',
+  alat_transportasi: 'Alat Transportasi',
+  no_hp: 'Nomor HP / WhatsApp',
+  jurusan: 'Jurusan / Program Keahlian',
+  status_hidup_ayah: 'Status Hidup Ayah',
+  nama_ayah: 'Nama Ayah Kandung',
+  nik_ayah: 'NIK Ayah',
+  tahun_lahir_ayah: 'Tahun Lahir Ayah',
+  jenjang_pendidikan_ayah: 'Pendidikan Terakhir Ayah',
+  pekerjaan_ayah: 'Pekerjaan Ayah',
+  penghasilan_ayah: 'Penghasilan Ayah',
+  status_hidup_ibu: 'Status Hidup Ibu',
+  nama_ibu: 'Nama Ibu Kandung',
+  nik_ibu: 'NIK Ibu',
+  tahun_lahir_ibu: 'Tahun Lahir Ibu',
+  jenjang_pendidikan_ibu: 'Pendidikan Terakhir Ibu',
+  pekerjaan_ibu: 'Pekerjaan Ibu',
+  penghasilan_ibu: 'Penghasilan Ibu',
+  sekolah_asal: 'Sekolah Asal (SMP/MTs)',
+  id_hobby: 'Hobi',
+  id_cita: 'Cita-cita',
+  tinggi_badan: 'Tinggi Badan (cm)',
+  berat_badan: 'Berat Badan (kg)',
+  lingkar_kepala: 'Lingkar Kepala (cm)',
+  jumlah_saudara_kandung: 'Jumlah Saudara Kandung',
+  anak_ke: 'Anak Ke-berapa',
+  jarak_rumah_ke_sekolah: 'Jarak Rumah ke Sekolah',
+  sebutkan_kilometer: 'Jarak dalam Kilometer (km)',
+  waktu_tempuh: 'Waktu Tempuh ke Sekolah (Menit)',
+};
+
 function DashboardView({ 
-  formData 
+  formData,
+  onNavigate
 }: { 
-  formData: any 
+  formData: any;
+  onNavigate?: (section: Section) => void;
 }) {
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
   const calculateStatus = (fields: string[]) => {
-    if (fields.length === 0) return { status: 'Lengkap', color: 'emerald', percent: 100 };
+    if (fields.length === 0) return { status: 'Lengkap', color: 'emerald', percent: 100, missingFields: [] };
     
-    const filledFields = fields.filter(field => {
+    const missingFields: string[] = [];
+    const filledFields: string[] = [];
+
+    fields.forEach(field => {
+      let isFilled = false;
       if (field === 'wilayah') {
-        return Boolean(formData.nama_wil || (formData.kel && formData.kec && formData.kab_kota));
+        isFilled = Boolean(formData.nama_wil || (formData.kel && formData.kec && formData.kab_kota));
+      } else if ((field === 'pekerjaan_ayah' || field === 'penghasilan_ayah') && (formData.status_hidup_ayah === 'Wafat' || formData.pekerjaan_ayah === '98')) {
+        isFilled = true;
+      } else if ((field === 'pekerjaan_ibu' || field === 'penghasilan_ibu') && (formData.status_hidup_ibu === 'Wafat' || formData.pekerjaan_ibu === '98')) {
+        isFilled = true;
+      } else {
+        const value = formData[field];
+        if (Array.isArray(value)) isFilled = value.length > 0;
+        else isFilled = value !== undefined && value !== null && String(value).trim() !== '';
       }
-      if ((field === 'pekerjaan_ayah' || field === 'penghasilan_ayah') && (formData.status_hidup_ayah === 'Wafat' || formData.pekerjaan_ayah === '98')) {
-        return true;
+
+      if (isFilled) {
+        filledFields.push(field);
+      } else {
+        missingFields.push(field);
       }
-      if ((field === 'pekerjaan_ibu' || field === 'penghasilan_ibu') && (formData.status_hidup_ibu === 'Wafat' || formData.pekerjaan_ibu === '98')) {
-        return true;
-      }
-      const value = formData[field];
-      if (Array.isArray(value)) return value.length > 0;
-      return value !== undefined && value !== null && value !== '';
     });
-    const isComplete = filledFields.length === fields.length;
+
+    const isComplete = missingFields.length === 0;
     return {
       status: isComplete ? 'Lengkap' : 'Belum Lengkap',
       color: isComplete ? 'emerald' : 'rose',
-      percent: Math.round((filledFields.length / fields.length) * 100)
+      percent: Math.round((filledFields.length / fields.length) * 100),
+      missingFields
     };
   };
 
-  const sections = [
+  const sections: {
+    label: string;
+    sectionId: Section;
+    getRequiredFields: () => string[];
+  }[] = [
     { 
       label: 'Profil Saya', 
+      sectionId: 'profil',
       getRequiredFields: () => ['nama', 'jk', 'nipd', 'nisn', 'nik', 'agama', 'tempat_lahir', 'tanggal_lahir', 'no_kk', 'alamat_jalan', 'wilayah', 'jenis_tinggal', 'alat_transportasi', 'no_hp', 'jurusan'] 
     },
     { 
       label: 'Data Orang Tua', 
+      sectionId: 'orangtua',
       getRequiredFields: () => {
         const fields = ['status_hidup_ayah', 'nama_ayah', 'status_hidup_ibu', 'nama_ibu'];
         
@@ -1310,10 +1375,12 @@ function DashboardView({
     },
     { 
       label: 'Registrasi Peserta Didik', 
+      sectionId: 'registrasi',
       getRequiredFields: () => ['sekolah_asal', 'id_hobby', 'id_cita'] 
     },
     { 
       label: 'Data Periodik', 
+      sectionId: 'periodik',
       getRequiredFields: () => {
         const fields = ['tinggi_badan', 'berat_badan', 'lingkar_kepala', 'jumlah_saudara_kandung', 'anak_ke', 'jarak_rumah_ke_sekolah', 'waktu_tempuh'];
         if (formData.jarak_rumah_ke_sekolah === '2') {
@@ -1387,27 +1454,59 @@ function DashboardView({
 
       <div className="grid grid-cols-1 gap-6">
         <div className="glass-card p-4 sm:p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold">Status Kelengkapan Data (Field Wajib)</h3>
-            <span className="text-xs text-blue-400 font-semibold italic">Dihitung otomatis berdasarkan keterisian data</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-2">
+            <div>
+              <h3 className="text-lg font-bold">Status Kelengkapan Data (Field Wajib)</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Klik pada kartu di bawah untuk melihat rincian field yang belum terisi</p>
+            </div>
+            <span className="text-xs text-blue-400 font-semibold italic shrink-0">Dihitung otomatis berdasarkan keterisian data</span>
           </div>
+
           <div className="space-y-4">
             {sections.map((section, i) => {
               const requiredFields = section.getRequiredFields();
-              const { status, color, percent } = calculateStatus(requiredFields);
+              const { status, color, percent, missingFields } = calculateStatus(requiredFields);
+              const isExpanded = expandedIndex === i;
+
               return (
-                <div key={i} className="group">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 group-hover:border-white/20 transition-all">
+                <div 
+                  key={i} 
+                  className={`rounded-xl border transition-all overflow-hidden ${
+                    isExpanded 
+                      ? 'bg-white/[0.07] border-blue-500/40 shadow-lg shadow-blue-500/5' 
+                      : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]'
+                  }`}
+                >
+                  <div 
+                    onClick={() => setExpandedIndex(isExpanded ? null : i)}
+                    className="flex items-center justify-between p-4 cursor-pointer select-none"
+                  >
                     <div className="flex items-center gap-4">
-                      <div className={`w-2 h-2 rounded-full shadow-[0_0_8px] ${
+                      <div className={`w-2.5 h-2.5 rounded-full shadow-[0_0_8px] shrink-0 ${
                         color === 'emerald' ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50'
                       }`} />
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium">{section.label}</span>
-                        <span className="text-[10px] text-slate-500">{requiredFields.length} Field Wajib</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-white">{section.label}</span>
+                          <span className="text-[10px] text-slate-400 bg-white/10 px-2 py-0.5 rounded-full font-medium">
+                            {requiredFields.length} Field Wajib
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                          {missingFields.length > 0 ? (
+                            <span className="text-rose-400 font-medium">
+                              {missingFields.length} field belum terisi • Klik untuk detail
+                            </span>
+                          ) : (
+                            <span className="text-emerald-400 font-medium">
+                              Semua field lengkap • Klik untuk detail
+                            </span>
+                          )}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+
+                    <div className="flex items-center gap-3 sm:gap-4">
                       <div className="hidden sm:block w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
                         <motion.div 
                           initial={{ width: 0 }}
@@ -1415,13 +1514,82 @@ function DashboardView({
                           className={`h-full rounded-full ${color === 'emerald' ? 'bg-emerald-500' : 'bg-rose-500'}`}
                         />
                       </div>
-                      <span className={`text-xs font-bold min-w-[80px] text-right ${
+                      <span className={`text-xs font-bold min-w-[70px] text-right ${
                         color === 'emerald' ? 'text-emerald-400' : 'text-rose-400'
                       }`}>
                         {status} ({percent}%)
                       </span>
+                      <div className={`w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center transition-transform ${isExpanded ? 'rotate-180 bg-blue-500/20 text-blue-400' : 'text-slate-400'}`}>
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
                     </div>
                   </div>
+
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="border-t border-white/10 bg-black/30 p-4 sm:p-5 space-y-4"
+                      >
+                        {missingFields.length > 0 ? (
+                          <div className="space-y-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-3">
+                              <span className="text-xs font-semibold text-rose-300 flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                                Rincian {missingFields.length} field wajib yang belum terisi:
+                              </span>
+                              {onNavigate && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onNavigate(section.sectionId);
+                                  }}
+                                  className="text-xs text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 hover:underline cursor-pointer bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 self-start sm:self-auto"
+                                >
+                                  Lengkapi {section.label} <ChevronRight className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+                              {missingFields.map((fieldKey) => (
+                                <div 
+                                  key={fieldKey}
+                                  className="flex items-center gap-2.5 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2 text-xs text-rose-200"
+                                >
+                                  <div className="w-2 h-2 rounded-full bg-rose-400 shrink-0 shadow-[0_0_6px_rgba(244,63,94,0.8)]" />
+                                  <span className="font-medium truncate">{FIELD_LABELS[fieldKey] || fieldKey}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
+                            <div className="flex items-center gap-3 text-emerald-300 text-xs font-semibold">
+                              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                              <span>Semua {requiredFields.length} field wajib pada {section.label} sudah terisi dengan lengkap!</span>
+                            </div>
+                            {onNavigate && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onNavigate(section.sectionId);
+                                }}
+                                className="text-xs bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 px-3.5 py-2 rounded-lg font-bold border border-emerald-500/30 shrink-0 transition-colors cursor-pointer flex items-center gap-1"
+                              >
+                                Lihat Data <ChevronRight className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
