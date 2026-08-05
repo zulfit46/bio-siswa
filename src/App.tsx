@@ -1643,19 +1643,40 @@ function WilayahSelect({
     const val = e.target.value;
     setSearchTerm(val);
     setIsOpen(true);
-    const matched = wilayahList.find(w => w.nama_wil.toLowerCase() === val.trim().toLowerCase());
-    setFormData((prev: any) => ({
-      ...prev,
-      nama_wil: val,
-      kode_wil: matched ? matched.kode_wil : ''
-    }));
+    
+    // Cek apakah input persis sama dengan salah satu opsi di wilayahList
+    const matched = wilayahList.find(w => w.nama_wil.toLowerCase().trim() === val.trim().toLowerCase());
+    if (matched) {
+      setFormData((prev: any) => ({
+        ...prev,
+        nama_wil: matched.nama_wil,
+        kode_wil: matched.kode_wil
+      }));
+    } else {
+      // Jika hasil ketikan belum/tidak cocok persis dengan opsi, kosongkan kode_wil
+      setFormData((prev: any) => ({
+        ...prev,
+        nama_wil: val,
+        kode_wil: ''
+      }));
+    }
   };
+
+  // Wilayah valid jika kode_wil ada dan cocok dengan list, ATAU nama_wil cocok persis
+  const isValidSelection = Boolean(
+    searchTerm &&
+    searchTerm.trim() !== '' &&
+    wilayahList.length > 0 &&
+    wilayahList.some(item => 
+      (formData.kode_wil && item.kode_wil === formData.kode_wil) ||
+      (item.nama_wil.toLowerCase().trim() === searchTerm.trim().toLowerCase())
+    )
+  );
 
   const isInvalidTypedWilayah = Boolean(
     searchTerm &&
     searchTerm.trim() !== '' &&
-    wilayahList.length > 0 &&
-    !wilayahList.some(item => item.nama_wil.toLowerCase() === searchTerm.trim().toLowerCase())
+    !isValidSelection
   );
 
   return (
@@ -1664,9 +1685,13 @@ function WilayahSelect({
         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
           Wilayah (Kelurahan / Kecamatan / Kab. Kota) <span className="text-red-500">*</span>
         </label>
-        {formData.kode_wil && (
+        {formData.kode_wil ? (
           <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-semibold">
             Kode Wilayah: {formData.kode_wil}
+          </span>
+        ) : (
+          <span className="text-[10px] text-amber-400 font-mono bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full font-semibold">
+            Wajib Pilih dari Dropdown
           </span>
         )}
       </div>
@@ -1679,7 +1704,7 @@ function WilayahSelect({
           onFocus={() => setIsOpen(true)}
           placeholder="Ketik & pilih nama wilayah dari daftar pilihan..."
           className={`w-full bg-white/5 border ${
-            isInvalidTypedWilayah ? 'border-red-500/60 focus:border-red-500' : 'border-white/10 focus:border-blue-500/50'
+            isInvalidTypedWilayah ? 'border-red-500/60 focus:border-red-500 text-red-200' : 'border-white/10 focus:border-blue-500/50'
           } rounded-xl py-3 pl-10 pr-10 focus:outline-none transition-all text-sm`}
         />
         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1707,8 +1732,8 @@ function WilayahSelect({
       </div>
 
       {isInvalidTypedWilayah && (
-        <p className="text-[10px] text-red-400 font-medium">
-          Wilayah yang diketik tidak ditemukan dalam pilihan. Data tidak dapat disimpan jika tidak memilih dari daftar pilihan.Hubungi Operator Dapodik - 0895433704646
+        <p className="text-[10px] text-red-400 font-medium bg-red-500/10 border border-red-500/20 p-2 rounded-lg">
+          ⚠️ Teks "{searchTerm}" belum dipilih dari daftar resmi. Silakan ketik dan KLIK salah satu opsi dari menu drop-down yang muncul di bawah.
         </p>
       )}
 
@@ -1824,6 +1849,8 @@ function ProfilEditView({
 
     // Validasi Field Wilayah (Wajib & Harus Sesuai Opsi Pilihan)
     const currentWil = (formData.nama_wil || '').toString().trim();
+    const currentKodeWil = (formData.kode_wil || '').toString().trim();
+
     if (!currentWil) {
       setErrorMessage('Gagal menyimpan: Field "Wilayah" wajib dipilih dari daftar pilihan.');
       setShowError(true);
@@ -1831,21 +1858,36 @@ function ProfilEditView({
       return;
     }
 
-    if (wilayahList && wilayahList.length > 0) {
-      const matchedOption = wilayahList.find(
-        w => w.nama_wil.toLowerCase() === currentWil.toLowerCase()
-      );
-      if (!matchedOption) {
-        setErrorMessage('Gagal menyimpan: Data wilayah tidak ditemukan dalam pilihan. Harap pilih wilayah yang tersedia dari daftar.');
-        setShowError(true);
-        setTimeout(() => setShowError(false), 4000);
-        return;
-      } else {
-        // Sinkronkan nama_wil dan kode_wil resmi dari data pilihan
-        formData.nama_wil = matchedOption.nama_wil;
-        formData.kode_wil = matchedOption.kode_wil;
-      }
+    if (isLoadingWilayah) {
+      setErrorMessage('Gagal menyimpan: Daftar wilayah masih dimuat dari server. Mohon tunggu beberapa detik lalu coba lagi.');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 4000);
+      return;
     }
+
+    if (!wilayahList || wilayahList.length === 0) {
+      setErrorMessage('Gagal menyimpan: Daftar wilayah resmi dari Dapodik tidak tersedia atau gagal dimuat. Silakan muat ulang (refresh) halaman.');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 4000);
+      return;
+    }
+
+    // Cari pencocokan presisi: berdasarkan kode_wil atau nama_wil yang persis
+    const matchedOption = wilayahList.find(
+      w => (currentKodeWil && w.kode_wil === currentKodeWil) ||
+           (w.nama_wil.toLowerCase().trim() === currentWil.toLowerCase())
+    );
+
+    if (!matchedOption) {
+      setErrorMessage(`Gagal menyimpan: Data wilayah "${currentWil}" tidak valid atau belum dipilih dari daftar resmi. Anda HARUS mengetik dan KLIK salah satu pilihan wilayah dari menu drop-down.`);
+      setShowError(true);
+      setTimeout(() => setShowError(false), 4000);
+      return;
+    }
+
+    // Sinkronkan nama_wil dan kode_wil resmi dari data pilihan
+    formData.nama_wil = matchedOption.nama_wil;
+    formData.kode_wil = matchedOption.kode_wil;
 
     // Validasi NIK harus 16 karakter
     if (formData.nik && formData.nik.toString().length !== 16) {
