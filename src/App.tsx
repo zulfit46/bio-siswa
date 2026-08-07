@@ -1436,70 +1436,44 @@ function DashboardView({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Kartu Status Validasi Data */}
-        <div className={`border rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all ${
-          isAllValid 
-            ? 'bg-emerald-500/10 border-emerald-500/30' 
-            : 'bg-rose-500/10 border-rose-500/40 shadow-lg shadow-rose-500/10'
-        }`}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-                isAllValid ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
-              }`}>
-                {isAllValid ? <CheckCircle2 className="w-6 h-6" /> : <AlertCircle className="w-6 h-6 text-rose-500 animate-bounce" />}
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Validasi Data</p>
-                <p className={`text-base sm:text-lg font-black tracking-wide mt-0.5 ${
-                  isAllValid 
-                    ? 'text-emerald-400' 
-                    : 'text-rose-500 font-extrabold animate-pulse drop-shadow-[0_0_12px_rgba(244,63,94,0.8)]'
-                }`}>
-                  {isAllValid ? 'Data Anda Valid' : 'Invalid'}
-                </p>
-              </div>
-            </div>
-            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${
-              isAllValid 
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
-                : 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+      {/* Kartu Status Validasi Data */}
+      <div className={`border rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all ${
+        isAllValid 
+          ? 'bg-emerald-500/10 border-emerald-500/30' 
+          : 'bg-rose-500/10 border-rose-500/40 shadow-lg shadow-rose-500/10'
+      }`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+              isAllValid ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
             }`}>
-              {isAllValid ? '100% Valid' : `${allMissingFields.length} Field Belum Terisi`}
-            </span>
-          </div>
-
-          <p className="text-xs text-slate-300 leading-relaxed">
-            {isAllValid 
-              ? 'Selamat! Seluruh data wajib (mandatory) pada profil, orang tua, registrasi, dan data periodik Anda sudah 100% lengkap.' 
-              : `Sistem mencatat ada ${allMissingFields.length} field wajib yang belum terisi. Mohon lengkapi field tersebut di bawah agar status berubah menjadi Valid.`}
-          </p>
-        </div>
-
-        {/* Kartu Informasi Rombel */}
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-5 flex flex-col justify-between gap-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs shrink-0">
-                <Users className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-blue-300/80 uppercase tracking-wider">Informasi Rombel</p>
-                <p className="text-base sm:text-lg font-black text-white tracking-wide mt-0.5">
-                  {formData.rombel || 'Belum Terdaftar Rombel'}
-                </p>
-              </div>
+              {isAllValid ? <CheckCircle2 className="w-6 h-6" /> : <AlertCircle className="w-6 h-6 text-rose-500 animate-bounce" />}
             </div>
-            <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-full font-mono font-bold border border-blue-500/30 shrink-0">
-              Hak Akses Active
-            </span>
+            <div>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Validasi Data</p>
+              <p className={`text-base sm:text-lg font-black tracking-wide mt-0.5 ${
+                isAllValid 
+                  ? 'text-emerald-400' 
+                  : 'text-rose-500 font-extrabold animate-pulse drop-shadow-[0_0_12px_rgba(244,63,94,0.8)]'
+              }`}>
+                {isAllValid ? 'Data Anda Valid' : 'Invalid'}
+              </p>
+            </div>
           </div>
-
-          <p className="text-xs text-slate-300 leading-relaxed">
-            Menu navigasi dan pemutakhiran data Anda secara otomatis disesuaikan berdasarkan Rombongan Belajar <span className="text-white font-bold">{formData.rombel || 'Siswa'}</span> di SMKN 1 Palopo.
-          </p>
+          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${
+            isAllValid 
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
+              : 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+          }`}>
+            {isAllValid ? '100% Valid' : `${allMissingFields.length} Field Belum Terisi`}
+          </span>
         </div>
+
+        <p className="text-xs text-slate-300 leading-relaxed">
+          {isAllValid 
+            ? 'Selamat! Seluruh data wajib (mandatory) pada profil, orang tua, registrasi, dan data periodik Anda sudah 100% lengkap.' 
+            : `Sistem mencatat ada ${allMissingFields.length} field wajib yang belum terisi. Mohon lengkapi field tersebut di bawah agar status berubah menjadi Valid.`}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
