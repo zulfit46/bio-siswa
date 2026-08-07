@@ -1163,9 +1163,7 @@ function PDFTemplate({ formData, getLabel, religionMapping, stayMapping, transpo
             <tbody>
               <tr><td style={{ padding: '6px 0', fontWeight: 'bold', width: '40%', color: '#444' }}>Alamat Jalan</td><td style={{ padding: '6px 0', color: '#000' }}>: {formData.alamat_jalan || '-'}</td></tr>
               <tr><td style={{ padding: '6px 0', fontWeight: 'bold', width: '40%', color: '#444' }}>RT/RW</td><td style={{ padding: '6px 0', color: '#000' }}>: {formData.rt || '00'}/{formData.rw || '00'}</td></tr>
-              <tr><td style={{ padding: '6px 0', fontWeight: 'bold', width: '40%', color: '#444' }}>Kelurahan</td><td style={{ padding: '6px 0', color: '#000' }}>: {formData.kel || '-'}</td></tr>
-              <tr><td style={{ padding: '6px 0', fontWeight: 'bold', width: '40%', color: '#444' }}>Kecamatan</td><td style={{ padding: '6px 0', color: '#000' }}>: {formData.kec || '-'}</td></tr>
-              <tr><td style={{ padding: '6px 0', fontWeight: 'bold', width: '40%', color: '#444' }}>Kabupaten/Kota</td><td style={{ padding: '6px 0', color: '#000' }}>: {formData.kab_kota || '-'}</td></tr>
+              <tr><td style={{ padding: '6px 0', fontWeight: 'bold', width: '40%', color: '#444' }}>Kel/Kec/Kab.Kota</td><td style={{ padding: '6px 0', color: '#000' }}>: {formData.nama_wil || (formData.kel || formData.kec || formData.kab_kota ? [formData.kel, formData.kec, formData.kab_kota].filter(Boolean).join(', ') : '-')}</td></tr>
               <tr><td style={{ padding: '6px 0', fontWeight: 'bold', width: '40%', color: '#444' }}>Kode Pos</td><td style={{ padding: '6px 0', color: '#000' }}>: {formData.kode_pos || '-'}</td></tr>
               <tr><td style={{ padding: '6px 0', fontWeight: 'bold', width: '40%', color: '#444' }}>Jenis Tinggal</td><td style={{ padding: '6px 0', color: '#000' }}>: {getLabel(formData.jenis_tinggal, stayMapping)}</td></tr>
               <tr><td style={{ padding: '6px 0', fontWeight: 'bold', width: '40%', color: '#444' }}>Alat Transportasi</td><td style={{ padding: '6px 0', color: '#000' }}>: {getLabel(formData.alat_transportasi, transportMapping)}</td></tr>
@@ -1183,8 +1181,8 @@ function PDFTemplate({ formData, getLabel, religionMapping, stayMapping, transpo
               <p style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '8px', color: '#444', textDecoration: 'underline' }}>Ayah Kandung:</p>
               <table style={{ width: '100%', fontSize: '10px' }}>
                 <tbody>
-                  <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Nama</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nama_ayah || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Status Hidup</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.status_hidup_ayah || 'Hidup'}</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Nama</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nama_ayah || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>NIK</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nik_ayah || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Tahun Lahir</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.tahun_lahir_ayah || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Pendidikan</td><td style={{ padding: '4px 0', color: '#000' }}>: {getLabel(formData.jenjang_pendidikan_ayah, eduMapping)}</td></tr>
@@ -1197,8 +1195,8 @@ function PDFTemplate({ formData, getLabel, religionMapping, stayMapping, transpo
               <p style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '8px', color: '#444', textDecoration: 'underline' }}>Ibu Kandung:</p>
               <table style={{ width: '100%', fontSize: '10px' }}>
                 <tbody>
-                  <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Nama</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nama_ibu || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Status Hidup</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.status_hidup_ibu || 'Hidup'}</td></tr>
+                  <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Nama</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nama_ibu || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>NIK</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.nik_ibu || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Tahun Lahir</td><td style={{ padding: '4px 0', color: '#000' }}>: {formData.tahun_lahir_ibu || '-'}</td></tr>
                   <tr><td style={{ padding: '4px 0', fontWeight: 'bold', width: '45%', color: '#555' }}>Pendidikan</td><td style={{ padding: '4px 0', color: '#000' }}>: {getLabel(formData.jenjang_pendidikan_ibu, eduMapping)}</td></tr>
@@ -1394,9 +1392,16 @@ function DashboardView({
   const overallCompletion = Math.round(
     sections.reduce((acc, section) => acc + calculateStatus(section.getRequiredFields()).percent, 0) / sections.length
   );
+  const allMissingFields = sections.flatMap(section => calculateStatus(section.getRequiredFields()).missingFields);
+  const isAllValid = overallCompletion === 100 && allMissingFields.length === 0;
 
   const stats = [
-    { label: 'Kelengkapan Data', value: `${overallCompletion}%`, trend: overallCompletion === 100 ? 'Sempurna' : 'Butuh Update', color: overallCompletion === 100 ? 'emerald' : 'blue' },
+    { 
+      label: 'Kelengkapan Data', 
+      value: `${overallCompletion}%`, 
+      trend: isAllValid ? 'VALID' : 'INVALID', 
+      color: isAllValid ? 'emerald' : 'rose' 
+    },
     { label: 'NIPD', value: formData.nipd || '-', trend: '-', color: 'emerald' },
     { label: 'NISN', value: formData.nisn || '-', trend: '-', color: 'purple' },
     { label: 'Rombel', value: formData.rombel || '-', trend: '-', color: 'rose' },
@@ -1420,7 +1425,7 @@ function DashboardView({
             <div className="flex items-end justify-between">
               <div className="text-3xl font-bold">{stat.value}</div>
               <div className={`text-[10px] font-bold px-2 py-1 rounded-full ${
-                stat.color === 'rose' ? 'bg-rose-500/10 text-rose-400' : 
+                stat.color === 'rose' ? 'bg-rose-500/20 text-rose-400 animate-pulse border border-rose-500/30' : 
                 stat.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' :
                 'bg-blue-500/10 text-blue-400'
               }`}>
@@ -1431,26 +1436,71 @@ function DashboardView({
         ))}
       </div>
 
-      {formData.rombel && (
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs shrink-0">
-              <Users className="w-5 h-5" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Kartu Status Validasi Data */}
+        <div className={`border rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all ${
+          isAllValid 
+            ? 'bg-emerald-500/10 border-emerald-500/30' 
+            : 'bg-rose-500/10 border-rose-500/40 shadow-lg shadow-rose-500/10'
+        }`}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                isAllValid ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+              }`}>
+                {isAllValid ? <CheckCircle2 className="w-6 h-6" /> : <AlertCircle className="w-6 h-6 text-rose-500 animate-bounce" />}
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Status Validasi Data</p>
+                <p className={`text-base sm:text-lg font-black tracking-wide mt-0.5 ${
+                  isAllValid 
+                    ? 'text-emerald-400' 
+                    : 'text-rose-500 font-extrabold animate-pulse drop-shadow-[0_0_12px_rgba(244,63,94,0.8)]'
+                }`}>
+                  {isAllValid ? 'Data Anda Valid' : 'Invalid'}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-semibold text-blue-300">
-                Hak Akses Rombel: <span className="text-white font-bold">{formData.rombel}</span>
-              </p>
-              <p className="text-[11px] text-slate-400">
-                Menu navigasi disesuaikan secara otomatis berdasarkan rombel Anda ({formData.rombel}).
-              </p>
-            </div>
+            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${
+              isAllValid 
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
+                : 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+            }`}>
+              {isAllValid ? '100% Valid' : `${allMissingFields.length} Field Belum Terisi`}
+            </span>
           </div>
-          <span className="text-[10px] bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full font-mono font-medium border border-blue-500/30 shrink-0">
-            Akses Rombel Terverifikasi
-          </span>
+
+          <p className="text-xs text-slate-300 leading-relaxed">
+            {isAllValid 
+              ? 'Selamat! Seluruh data wajib (mandatory) pada profil, orang tua, registrasi, dan data periodik Anda sudah 100% lengkap.' 
+              : `Sistem mencatat ada ${allMissingFields.length} field wajib yang belum terisi. Mohon lengkapi field tersebut di bawah agar status berubah menjadi Valid.`}
+          </p>
         </div>
-      )}
+
+        {/* Kartu Informasi Rombel */}
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-5 flex flex-col justify-between gap-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs shrink-0">
+                <Users className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-blue-300/80 uppercase tracking-wider">Informasi Rombel</p>
+                <p className="text-base sm:text-lg font-black text-white tracking-wide mt-0.5">
+                  {formData.rombel || 'Belum Terdaftar Rombel'}
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-full font-mono font-bold border border-blue-500/30 shrink-0">
+              Hak Akses Active
+            </span>
+          </div>
+
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Menu navigasi dan pemutakhiran data Anda secara otomatis disesuaikan berdasarkan Rombongan Belajar <span className="text-white font-bold">{formData.rombel || 'Siswa'}</span> di SMKN 1 Palopo.
+          </p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-6">
         <div className="glass-card p-4 sm:p-8">
