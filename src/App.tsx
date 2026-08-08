@@ -24,7 +24,14 @@ import {
   Printer,
   Check,
   ChevronDown,
-  MapPin
+  MapPin,
+  Lock,
+  Unlock,
+  KeyRound,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF } from 'jspdf';
@@ -98,6 +105,84 @@ function StatusModal({ show, type, message, onClose }: { show: boolean, type: 's
         </div>
       )}
     </AnimatePresence>
+  );
+}
+
+export function parseStatusKunci(val: any) {
+  let sk = { profil: 0, orangtua: 0, registrasi: 0, periodik: 0 };
+  if (typeof val === 'object' && val !== null) {
+    sk = { ...sk, ...val };
+  } else if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      if (typeof parsed === 'object' && parsed !== null) {
+        sk = { ...sk, ...parsed };
+      }
+    } catch (e) {}
+  }
+  return {
+    profil: Number(sk.profil) === 1 ? 1 : 0,
+    orangtua: Number(sk.orangtua) === 1 ? 1 : 0,
+    registrasi: Number(sk.registrasi) === 1 ? 1 : 0,
+    periodik: Number(sk.periodik) === 1 ? 1 : 0,
+  };
+}
+
+export function SectionLockHeader({
+  sectionId,
+  sectionName,
+  formData,
+}: {
+  sectionId: 'profil' | 'orangtua' | 'registrasi' | 'periodik';
+  sectionName: string;
+  formData: any;
+  setFormData?: any;
+}) {
+  const statusKunci = parseStatusKunci(formData.status_kunci);
+  const isLocked = statusKunci[sectionId] === 1;
+
+  if (isLocked) {
+    return (
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 font-bold shrink-0">
+            <Lock className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-bold text-amber-300">Formulir {sectionName} Terkunci</p>
+              <span className="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                Status: 1
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-0.5">
+              Data pada menu {sectionName} sedang terkunci. Hubungi Admin Sekolah jika Anda perlu melakukan perubahan data.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 mb-6">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold shrink-0">
+          <Unlock className="w-5 h-5" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold text-emerald-300">Formulir {sectionName} Terbuka untuk Diedit</p>
+            <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+              Status: 0
+            </span>
+          </div>
+          <p className="text-xs text-slate-300 mt-0.5">
+            Silakan lengkapi atau perbarui data Anda pada menu ini, lalu klik Simpan Data.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1628,12 +1713,14 @@ function WilayahSelect({
   formData, 
   setFormData, 
   wilayahList, 
-  isLoadingWilayah 
+  isLoadingWilayah,
+  disabled
 }: { 
   formData: any; 
   setFormData: any; 
   wilayahList: { nama_wil: string; kode_wil: string }[];
   isLoadingWilayah?: boolean;
+  disabled?: boolean;
 }) {
   const [searchTerm, setSearchTerm] = useState(formData.nama_wil || '');
   const [isOpen, setIsOpen] = useState(false);
@@ -1725,14 +1812,16 @@ function WilayahSelect({
           type="text"
           value={searchTerm}
           onChange={handleInputChange}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => !disabled && setIsOpen(true)}
+          disabled={disabled}
           placeholder="Ketik & pilih nama wilayah dari daftar pilihan..."
           className={`w-full bg-white/5 border ${
+            disabled ? 'opacity-60 cursor-not-allowed border-white/10' :
             isInvalidTypedWilayah ? 'border-red-500/60 focus:border-red-500 text-red-200' : 'border-white/10 focus:border-blue-500/50'
           } rounded-xl py-3 pl-10 pr-10 focus:outline-none transition-all text-sm`}
         />
         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-        {searchTerm ? (
+        {searchTerm && !disabled ? (
           <button
             type="button"
             onClick={() => {
@@ -1833,14 +1922,17 @@ function ProfilEditView({
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const statusKunci = parseStatusKunci(formData.status_kunci);
+  const isLocked = statusKunci.profil === 1;
+
   const isTempatLahirDisabled = Boolean(
     (formData.initial_tempat_lahir !== undefined ? formData.initial_tempat_lahir : formData.tempat_lahir) &&
     String(formData.initial_tempat_lahir !== undefined ? formData.initial_tempat_lahir : formData.tempat_lahir).trim() !== ''
-  );
+  ) || isLocked;
   const isTanggalLahirDisabled = Boolean(
     (formData.initial_tanggal_lahir !== undefined ? formData.initial_tanggal_lahir : formData.tanggal_lahir) &&
     String(formData.initial_tanggal_lahir !== undefined ? formData.initial_tanggal_lahir : formData.tanggal_lahir).trim() !== ''
-  );
+  ) || isLocked;
   
   const handleSave = async () => {
     // List field yang wajib diisi
@@ -1933,7 +2025,10 @@ function ProfilEditView({
     
     try {
       // Menyiapkan data lengkap sesuai urutan kolom di Google Sheet
-      // Mengirimkan seluruh data (Siswa + Orang Tua) agar tidak ada data yang terhapus
+      // Auto-lock profil upon save
+      const currentSk = parseStatusKunci(formData.status_kunci);
+      const updatedSk = { ...currentSk, profil: 1 };
+
       const payload = {
         action: 'update_profile',
         nipd: String(formData.nipd || ''),
@@ -1961,6 +2056,7 @@ function ProfilEditView({
         email: String(formData.email || ''),
         rombel: String(formData.rombel || ''),
         jurusan: String(formData.jurusan || ''),
+        status_kunci: JSON.stringify(updatedSk),
         // Data Orang Tua (Kolom X - AI)
         nama_ayah: String(formData.nama_ayah || ''),
         status_hidup_ayah: String(formData.status_hidup_ayah || ''),
@@ -2002,11 +2098,9 @@ function ProfilEditView({
 
       console.log('Sending full profile data to Google Sheet...');
       
-      // Menggunakan URLSearchParams untuk mengirim data sebagai form-urlencoded
-      // Ini lebih kompatibel dengan Google Apps Script (e.parameter)
       const params = new URLSearchParams();
       Object.keys(payload).forEach(key => {
-        params.append(key, payload[key]);
+        params.append(key, (payload as any)[key]);
       });
 
       await fetch(SCRIPT_URL, {
@@ -2019,9 +2113,11 @@ function ProfilEditView({
       setShowSuccess(true);
       setFormData((prev: any) => ({
         ...prev,
+        status_kunci: updatedSk,
         initial_tempat_lahir: prev.tempat_lahir ? String(prev.tempat_lahir).trim() : '',
         initial_tanggal_lahir: prev.tanggal_lahir ? String(prev.tanggal_lahir).trim() : ''
       }));
+      localStorage.setItem(`status_kunci_${formData.nisn || 'user'}`, JSON.stringify(updatedSk));
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error('Error saving to Google Sheets:', error);
@@ -2034,6 +2130,14 @@ function ProfilEditView({
 
   return (
     <div className="space-y-8">
+      {/* Section Lock Banner & Admin Modal */}
+      <SectionLockHeader
+        sectionId="profil"
+        sectionName="Profil Saya"
+        formData={formData}
+        setFormData={setFormData}
+      />
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Edit Profil Siswa</h1>
@@ -2041,15 +2145,17 @@ function ProfilEditView({
         </div>
         <button 
           onClick={handleSave}
-          disabled={isSaving}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+          disabled={isSaving || isLocked}
+          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
         >
           {isSaving ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : isLocked ? (
+            <Lock className="w-4 h-4" />
           ) : (
             <Save className="w-4 h-4" />
           )}
-          Simpan Perubahan
+          {isLocked ? 'Terkunci' : 'Simpan Perubahan'}
         </button>
       </div>
 
@@ -2080,7 +2186,7 @@ function ProfilEditView({
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Jenis Kelamin <span className="text-red-500">*</span></label>
-                <select name="jk" value={formData.jk} onChange={handleInputChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+                <select name="jk" value={formData.jk} onChange={handleInputChange} disabled={isLocked} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                   <option value="">Pilih Jenis Kelamin</option>
                   <option value="L">Laki-laki</option>
                   <option value="P">Perempuan</option>
@@ -2100,10 +2206,11 @@ function ProfilEditView({
                   name="nik" 
                   value={formData.nik} 
                   onChange={handleInputChange} 
+                  disabled={isLocked}
                   type="text" 
                   maxLength={16}
                   placeholder="16 digit NIK"
-                  className={`w-full bg-white/5 border ${formData.nik && formData.nik.toString().length !== 16 ? 'border-red-500/50' : 'border-white/10'} rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all`} 
+                  className={`w-full bg-white/5 border ${formData.nik && formData.nik.toString().length !== 16 ? 'border-red-500/50' : 'border-white/10'} rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all`} 
                 />
                 {formData.nik && formData.nik.toString().length !== 16 && (
                   <p className="text-[10px] text-red-400">NIK harus 16 digit (Saat ini: {formData.nik.toString().length})</p>
@@ -2115,7 +2222,8 @@ function ProfilEditView({
                   name="agama" 
                   value={formData.agama} 
                   onChange={handleInputChange} 
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all"
+                  disabled={isLocked}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   <option value="">Pilih Agama</option>
                   <option value="1">Islam</option>
@@ -2142,7 +2250,7 @@ function ProfilEditView({
                 {isTempatLahirDisabled ? (
                   <input name="tempat_lahir" value={formData.tempat_lahir} readOnly type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none cursor-not-allowed opacity-60 transition-all" />
                 ) : (
-                  <input name="tempat_lahir" value={formData.tempat_lahir} onChange={handleInputChange} type="text" placeholder="Masukkan Tempat Lahir" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                  <input name="tempat_lahir" value={formData.tempat_lahir} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Masukkan Tempat Lahir" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
                 )}
               </div>
               <div className="space-y-2">
@@ -2150,7 +2258,7 @@ function ProfilEditView({
                 {isTanggalLahirDisabled ? (
                   <input name="tanggal_lahir" value={formData.tanggal_lahir} readOnly type="date" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none cursor-not-allowed opacity-60 transition-all" />
                 ) : (
-                  <input name="tanggal_lahir" value={formData.tanggal_lahir} onChange={handleInputChange} type="date" className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                  <input name="tanggal_lahir" value={formData.tanggal_lahir} onChange={handleInputChange} disabled={isLocked} type="date" className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
                 )}
               </div>
               <div className="space-y-2">
@@ -2159,10 +2267,11 @@ function ProfilEditView({
                   name="no_kk" 
                   value={formData.no_kk} 
                   onChange={handleInputChange} 
+                  disabled={isLocked}
                   type="text" 
                   maxLength={16}
                   placeholder="16 digit No. KK"
-                  className={`w-full bg-white/5 border ${formData.no_kk && formData.no_kk.toString().length !== 16 ? 'border-red-500/50' : 'border-white/10'} rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all`} 
+                  className={`w-full bg-white/5 border ${formData.no_kk && formData.no_kk.toString().length !== 16 ? 'border-red-500/50' : 'border-white/10'} rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all`} 
                 />
                 {formData.no_kk && formData.no_kk.toString().length !== 16 && (
                   <p className="text-[10px] text-red-400">No. KK harus 16 digit (Saat ini: {formData.no_kk.toString().length})</p>
@@ -2170,7 +2279,7 @@ function ProfilEditView({
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">No. Registrasi Akta Lahir</label>
-                <input name="reg_akta_lahir" value={formData.reg_akta_lahir} onChange={handleInputChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                <input name="reg_akta_lahir" value={formData.reg_akta_lahir} onChange={handleInputChange} disabled={isLocked} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
               </div>
             </div>
           </div>
@@ -2183,25 +2292,26 @@ function ProfilEditView({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div className="sm:col-span-3 space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Alamat Jalan <span className="text-red-500">*</span></label>
-                <input name="alamat_jalan" value={formData.alamat_jalan} onChange={handleInputChange} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                <input name="alamat_jalan" value={formData.alamat_jalan} onChange={handleInputChange} disabled={isLocked} type="text" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">RT</label>
-                <input name="rt" value={formData.rt} onChange={handleInputChange} type="text" placeholder="000" maxLength={3} className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                <input name="rt" value={formData.rt} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="000" maxLength={3} className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">RW</label>
-                <input name="rw" value={formData.rw} onChange={handleInputChange} type="text" placeholder="000" maxLength={3} className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                <input name="rw" value={formData.rw} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="000" maxLength={3} className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kode Pos</label>
-                <input name="kode_pos" value={formData.kode_pos} onChange={handleInputChange} type="text" placeholder="00000" maxLength={5} className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                <input name="kode_pos" value={formData.kode_pos} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="00000" maxLength={5} className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
               </div>
               <WilayahSelect 
                 formData={formData} 
                 setFormData={setFormData} 
                 wilayahList={wilayahList} 
-                isLoadingWilayah={isLoadingWilayah} 
+                isLoadingWilayah={isLoadingWilayah}
+                disabled={isLocked} 
               />
             </div>
           </div>
@@ -2218,7 +2328,8 @@ function ProfilEditView({
                   name="jenis_tinggal" 
                   value={formData.jenis_tinggal} 
                   onChange={handleInputChange} 
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all"
+                  disabled={isLocked}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   <option value="">Pilih Jenis Tinggal</option>
                   <option value="1">Bersama orang tua</option>
@@ -2236,7 +2347,8 @@ function ProfilEditView({
                   name="alat_transportasi" 
                   value={formData.alat_transportasi} 
                   onChange={handleInputChange} 
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all"
+                  disabled={isLocked}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   <option value="">Pilih Alat Transportasi</option>
                   <option value="1">Jalan kaki</option>
@@ -2257,14 +2369,15 @@ function ProfilEditView({
                   name="no_hp" 
                   value={formData.no_hp} 
                   onChange={handleInputChange} 
+                  disabled={isLocked}
                   type="text" 
                   placeholder="Contoh: 08123456789"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" 
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</label>
-                <input name="email" value={formData.email} onChange={handleInputChange} type="email" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+                <input name="email" value={formData.email} onChange={handleInputChange} disabled={isLocked} type="email" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rombel</label>
@@ -2314,6 +2427,9 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const statusKunci = parseStatusKunci(formData.status_kunci);
+  const isLocked = statusKunci.orangtua === 1;
 
   // Wrapper for handleInputChange to handle automatic income & status_hidup logic
   const onFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -2537,8 +2653,9 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
     
     try {
       // Menyiapkan data lengkap sesuai urutan kolom di Google Sheet
-      // Mengirimkan seluruh data (Siswa + Orang Tua) agar tidak ada data yang terhapus
-      // Menggunakan action 'update_profile' agar sama dengan logika di menu profil yang sudah berhasil
+      const currentSk = parseStatusKunci(formData.status_kunci);
+      const updatedSk = { ...currentSk, orangtua: 1 };
+
       const payload = {
         action: 'update_profile',
         nipd: String(formData.nipd || ''),
@@ -2564,6 +2681,7 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
         email: String(formData.email || ''),
         rombel: String(formData.rombel || ''),
         jurusan: String(formData.jurusan || ''),
+        status_kunci: JSON.stringify(updatedSk),
         // Data Orang Tua (Kolom X - AI)
         nama_ayah: String(formData.nama_ayah || ''),
         status_hidup_ayah: String(formData.status_hidup_ayah || ''),
@@ -2605,11 +2723,9 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
 
       console.log('Sending full parent & student data with action update_profile...');
 
-      // Menggunakan URLSearchParams untuk mengirim data sebagai form-urlencoded
-      // Ini lebih kompatibel dengan Google Apps Script (e.parameter)
       const params = new URLSearchParams();
       Object.keys(payload).forEach(key => {
-        params.append(key, payload[key]);
+        params.append(key, (payload as any)[key]);
       });
 
       await fetch(SCRIPT_URL, {
@@ -2620,6 +2736,11 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
 
       setIsSaving(false);
       setShowSuccess(true);
+      setFormData((prev: any) => ({
+        ...prev,
+        status_kunci: updatedSk
+      }));
+      localStorage.setItem(`status_kunci_${formData.nisn || 'user'}`, JSON.stringify(updatedSk));
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error('Error saving to Google Sheets:', error);
@@ -2632,9 +2753,19 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Data Orang Tua</h1>
-        <p className="text-xs sm:text-sm text-slate-400">Lengkapi informasi ayah dan ibu kandung sesuai dengan dokumen resmi.</p>
+      {/* Section Lock Header */}
+      <SectionLockHeader
+        sectionId="orangtua"
+        sectionName="Data Orang Tua"
+        formData={formData}
+        setFormData={setFormData}
+      />
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Data Orang Tua</h1>
+          <p className="text-xs sm:text-sm text-slate-400">Lengkapi informasi ayah dan ibu kandung sesuai dengan dokumen resmi.</p>
+        </div>
       </div>
 
       <StatusModal 
@@ -2853,11 +2984,17 @@ function OrangTuaView({ formData, handleInputChange, setFormData }: { formData: 
         <div className="flex justify-end pt-4">
           <button 
             onClick={handleSave}
-            disabled={isSaving}
-            className="w-full sm:w-auto px-12 py-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3"
+            disabled={isSaving || isLocked}
+            className="w-full sm:w-auto px-12 py-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3"
           >
-            {isSaving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
-            Simpan Data Orang Tua
+            {isSaving ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : isLocked ? (
+              <Lock className="w-5 h-5" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            {isLocked ? 'Terkunci' : 'Simpan Data Orang Tua'}
           </button>
         </div>
       </div>
@@ -2870,6 +3007,9 @@ function RegistrasiView({ formData, handleInputChange, setFormData }: { formData
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const statusKunci = parseStatusKunci(formData.status_kunci);
+  const isLocked = statusKunci.registrasi === 1;
 
   const handleSave = async () => {
     // List field yang wajib diisi
@@ -2902,6 +3042,9 @@ function RegistrasiView({ formData, handleInputChange, setFormData }: { formData
     
     try {
       // Menyiapkan data lengkap sesuai urutan kolom di Google Sheet
+      const currentSk = parseStatusKunci(formData.status_kunci);
+      const updatedSk = { ...currentSk, registrasi: 1 };
+
       const payload = {
         action: 'update_profile',
         nipd: String(formData.nipd || ''),
@@ -2927,6 +3070,7 @@ function RegistrasiView({ formData, handleInputChange, setFormData }: { formData
         email: String(formData.email || ''),
         rombel: String(formData.rombel || ''),
         jurusan: String(formData.jurusan || ''),
+        status_kunci: JSON.stringify(updatedSk),
         // Data Orang Tua (Kolom X - AI)
         nama_ayah: String(formData.nama_ayah || ''),
         nik_ayah: String(formData.nik_ayah || ''),
@@ -2980,6 +3124,11 @@ function RegistrasiView({ formData, handleInputChange, setFormData }: { formData
 
       setIsSaving(false);
       setShowSuccess(true);
+      setFormData((prev: any) => ({
+        ...prev,
+        status_kunci: updatedSk
+      }));
+      localStorage.setItem(`status_kunci_${formData.nisn || 'user'}`, JSON.stringify(updatedSk));
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error('Error saving to Google Sheets:', error);
@@ -3066,9 +3215,19 @@ function RegistrasiView({ formData, handleInputChange, setFormData }: { formData
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Registrasi Peserta Didik</h1>
-        <p className="text-xs sm:text-sm text-slate-400">Lengkapi data registrasi untuk keperluan administrasi sekolah.</p>
+      {/* Section Lock Header */}
+      <SectionLockHeader
+        sectionId="registrasi"
+        sectionName="Registrasi Peserta Didik"
+        formData={formData}
+        setFormData={setFormData}
+      />
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Registrasi Peserta Didik</h1>
+          <p className="text-xs sm:text-sm text-slate-400">Lengkapi data registrasi untuk keperluan administrasi sekolah.</p>
+        </div>
       </div>
 
       <StatusModal 
@@ -3092,29 +3251,29 @@ function RegistrasiView({ formData, handleInputChange, setFormData }: { formData
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sekolah Asal <span className="text-red-500">*</span></label>
-              <input name="sekolah_asal" value={formData.sekolah_asal} onChange={handleInputChange} type="text" placeholder="Nama sekolah asal..." className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+              <input name="sekolah_asal" value={formData.sekolah_asal} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Nama sekolah asal..." className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Hobby <span className="text-red-500">*</span></label>
-              <select name="id_hobby" value={formData.id_hobby} onChange={handleInputChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+              <select name="id_hobby" value={formData.id_hobby} onChange={handleInputChange} disabled={isLocked} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                 <option value="">Pilih Hobby</option>
                 {hobbies.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cita-cita <span className="text-red-500">*</span></label>
-              <select name="id_cita" value={formData.id_cita} onChange={handleInputChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+              <select name="id_cita" value={formData.id_cita} onChange={handleInputChange} disabled={isLocked} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                 <option value="">Pilih Cita-cita</option>
                 {citas.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">No. Peserta Ujian</label>
-              <input name="no_peserta_ujian" value={formData.no_peserta_ujian} onChange={handleInputChange} type="text" placeholder="Nomor peserta ujian..." className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+              <input name="no_peserta_ujian" value={formData.no_peserta_ujian} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Nomor peserta ujian..." className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">No. Seri Ijazah</label>
-              <input name="no_seri_ijazah" value={formData.no_seri_ijazah} onChange={handleInputChange} type="text" placeholder="Nomor seri ijazah..." className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+              <input name="no_seri_ijazah" value={formData.no_seri_ijazah} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Nomor seri ijazah..." className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
             </div>
           </div>
         </div>
@@ -3122,11 +3281,17 @@ function RegistrasiView({ formData, handleInputChange, setFormData }: { formData
         <div className="flex justify-end pt-4">
           <button 
             onClick={handleSave}
-            disabled={isSaving}
-            className="w-full sm:w-auto px-12 py-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3"
+            disabled={isSaving || isLocked}
+            className="w-full sm:w-auto px-12 py-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3"
           >
-            {isSaving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
-            Simpan Data Registrasi
+            {isSaving ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : isLocked ? (
+              <Lock className="w-5 h-5" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            {isLocked ? 'Terkunci' : 'Simpan Data Registrasi'}
           </button>
         </div>
       </div>
@@ -3139,6 +3304,9 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const statusKunci = parseStatusKunci(formData.status_kunci);
+  const isLocked = statusKunci.periodik === 1;
 
   // Clear sebutkan_kilometer if jarak_rumah_ke_sekolah is '1'
   useEffect(() => {
@@ -3180,6 +3348,9 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
     setIsSaving(true);
     
     try {
+      const currentSk = parseStatusKunci(formData.status_kunci);
+      const updatedSk = { ...currentSk, periodik: 1 };
+
       const payload = {
         action: 'update_profile',
         nipd: String(formData.nipd || ''),
@@ -3205,6 +3376,7 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
         email: String(formData.email || ''),
         rombel: String(formData.rombel || ''),
         jurusan: String(formData.jurusan || ''),
+        status_kunci: JSON.stringify(updatedSk),
         nama_ayah: String(formData.nama_ayah || ''),
         nik_ayah: String(formData.nik_ayah || ''),
         tahun_lahir_ayah: String(formData.tahun_lahir_ayah || ''),
@@ -3256,6 +3428,11 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
 
       setIsSaving(false);
       setShowSuccess(true);
+      setFormData((prev: any) => ({
+        ...prev,
+        status_kunci: updatedSk
+      }));
+      localStorage.setItem(`status_kunci_${formData.nisn || 'user'}`, JSON.stringify(updatedSk));
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
       console.error('Error saving to Google Sheets:', error);
@@ -3268,9 +3445,19 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Data Periodik Peserta Didik</h1>
-        <p className="text-xs sm:text-sm text-slate-400">Lengkapi data periodik siswa untuk pemantauan perkembangan fisik.</p>
+      {/* Section Lock Header */}
+      <SectionLockHeader
+        sectionId="periodik"
+        sectionName="Data Periodik &amp; Kebutuhan Khusus"
+        formData={formData}
+        setFormData={setFormData}
+      />
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Data Periodik Peserta Didik</h1>
+          <p className="text-xs sm:text-sm text-slate-400">Lengkapi data periodik siswa untuk pemantauan perkembangan fisik.</p>
+        </div>
       </div>
 
       <StatusModal 
@@ -3289,42 +3476,42 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
       <div className="max-w-4xl mx-auto space-y-8 pb-20">
         <div className="glass-card p-4 sm:p-8 space-y-6">
           <h3 className="text-lg font-bold border-b border-white/5 pb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-400" /> Informasi Fisik & Keluarga
+            <Activity className="w-5 h-5 text-blue-400" /> Informasi Fisik &amp; Keluarga
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tinggi Badan (cm) <span className="text-red-500">*</span></label>
-              <input name="tinggi_badan" value={formData.tinggi_badan} onChange={handleInputChange} type="text" placeholder="Contoh: 165" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+              <input name="tinggi_badan" value={formData.tinggi_badan} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Contoh: 165" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Berat Badan (kg) <span className="text-red-500">*</span></label>
-              <input name="berat_badan" value={formData.berat_badan} onChange={handleInputChange} type="text" placeholder="Contoh: 55" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+              <input name="berat_badan" value={formData.berat_badan} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Contoh: 55" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Lingkar Kepala (cm) <span className="text-red-500">*</span></label>
-              <input name="lingkar_kepala" value={formData.lingkar_kepala} onChange={handleInputChange} type="text" placeholder="Contoh: 54" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+              <input name="lingkar_kepala" value={formData.lingkar_kepala} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Contoh: 54" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Jumlah Saudara Kandung <span className="text-red-500">*</span></label>
-              <input name="jumlah_saudara_kandung" value={formData.jumlah_saudara_kandung} onChange={handleInputChange} type="text" placeholder="Contoh: 2" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+              <input name="jumlah_saudara_kandung" value={formData.jumlah_saudara_kandung} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Contoh: 2" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Anak Ke <span className="text-red-500">*</span></label>
-              <input name="anak_ke" value={formData.anak_ke} onChange={handleInputChange} type="text" placeholder="Contoh: 1" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+              <input name="anak_ke" value={formData.anak_ke} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Contoh: 1" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
             </div>
           </div>
         </div>
 
         <div className="glass-card p-4 sm:p-8 space-y-6">
           <h3 className="text-lg font-bold border-b border-white/5 pb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-purple-400" /> Jarak & Waktu Tempuh
+            <Activity className="w-5 h-5 text-purple-400" /> Jarak &amp; Waktu Tempuh
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Jarak Rumah ke Sekolah <span className="text-red-500">*</span></label>
-              <select name="jarak_rumah_ke_sekolah" value={formData.jarak_rumah_ke_sekolah} onChange={handleInputChange} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all">
+              <select name="jarak_rumah_ke_sekolah" value={formData.jarak_rumah_ke_sekolah} onChange={handleInputChange} disabled={isLocked} className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                 <option value="">Pilih Jarak</option>
                 <option value="1">Kurang dari 1 Km</option>
                 <option value="2">Lebih dari 1 Km</option>
@@ -3338,13 +3525,13 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
                 onChange={handleInputChange} 
                 type="text" 
                 placeholder={formData.jarak_rumah_ke_sekolah === '1' ? "Tidak perlu diisi" : "Contoh: 5"}
-                disabled={formData.jarak_rumah_ke_sekolah === '1'}
-                className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all ${formData.jarak_rumah_ke_sekolah === '1' ? 'opacity-50 cursor-not-allowed bg-slate-800/50' : ''}`}
+                disabled={formData.jarak_rumah_ke_sekolah === '1' || isLocked}
+                className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${formData.jarak_rumah_ke_sekolah === '1' ? 'bg-slate-800/50' : ''}`}
               />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Waktu Tempuh ke Sekolah (Menit) <span className="text-red-500">*</span></label>
-              <input name="waktu_tempuh" value={formData.waktu_tempuh} onChange={handleInputChange} type="text" placeholder="Contoh: 15" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 transition-all" />
+              <input name="waktu_tempuh" value={formData.waktu_tempuh} onChange={handleInputChange} disabled={isLocked} type="text" placeholder="Contoh: 15" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all" />
             </div>
           </div>
         </div>
@@ -3352,11 +3539,17 @@ function PeriodikView({ formData, handleInputChange, setFormData }: { formData: 
         <div className="flex justify-end pt-4">
           <button 
             onClick={handleSave}
-            disabled={isSaving}
-            className="w-full sm:w-auto px-12 py-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3"
+            disabled={isSaving || isLocked}
+            className="w-full sm:w-auto px-12 py-4 rounded-xl bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3"
           >
-            {isSaving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Save className="w-5 h-5" />}
-            Simpan Data Periodik
+            {isSaving ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : isLocked ? (
+              <Lock className="w-5 h-5" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            {isLocked ? 'Terkunci' : 'Simpan Data Periodik'}
           </button>
         </div>
       </div>
